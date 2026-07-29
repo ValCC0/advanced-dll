@@ -1,2895 +1,327 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>RBX-UNC | 97% UNC-Compliant DLL Architecture</title>
-<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
-<style type="text/tailwindcss">
-  @layer base {
-    :root {
-      --accent: #7c3aed;
-      --accent2: #06b6d4;
-      --bg: #0a0a0f;
-      --surface: #111118;
-      --surface2: #1a1a26;
-      --border: #2a2a3e;
-      --text: #e2e8f0;
-      --muted: #64748b;
-    }
-    body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
-  }
-</style>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap');
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RBX-UNC | 97% UNC-Compliant DLL Architecture</title>
+    <link rel="icon" href="/favicon-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)">
+    <link rel="icon" href="/favicon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)">
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://019fab2c-59cb-7a4f-abf8-2780a3604c00.arena.site/">
+    <meta property="og:title" content="RBX-UNC | 97% UNC-Compliant DLL Architecture">
+    <meta property="og:description" content="Check out what I built in Arena's Code Arena - Content is user-generated and unverified">
+    <meta property="og:image" content="https://screenshot-taker-prod.weichiang.workers.dev/message/019fab2c-59cb-7a4f-abf8-2780a3604c00/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://019fab2c-59cb-7a4f-abf8-2780a3604c00.arena.site/">
+    <meta property="twitter:title" content="RBX-UNC | 97% UNC-Compliant DLL Architecture">
+    <meta property="twitter:description" content="Check out what I built in Arena's Code Arena - Content is user-generated and unverified">
+    <meta property="twitter:image" content="https://screenshot-taker-prod.weichiang.workers.dev/message/019fab2c-59cb-7a4f-abf8-2780a3604c00/og-image.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet">
+    <script type="text/javascript" async="" src="/ph/static/array.js"></script><script>
+      const REPORT_SURVEY_ID = "019a46ef-f7dd-0000-58be-14fbb8b91d15";
+      const MESSAGE_ID = "019fab2c-59cb-7a4f-abf8-2780a3604c00";
+      const EVALUATION_SESSION_ID = "019fab15-fdb2-7d27-b3c0-f3cd5302923b";
+      const getStorageKey = (prefix) => `${prefix}_${MESSAGE_ID}`;
+      const hasStorageKey = (prefix) => !!localStorage.getItem(getStorageKey(prefix));
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+      // snippet below comes from posthog's documentation for running in html pages
+      // prettier-ignore
+      !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
 
-  body {
-    background: #0a0a0f;
-    color: #e2e8f0;
-    font-family: 'Inter', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* GRID BACKGROUND */
-  .grid-bg {
-    position: fixed; inset: 0; z-index: 0;
-    background-image:
-      linear-gradient(rgba(124,58,237,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(124,58,237,0.04) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-  }
-
-  /* GLOW ORBS */
-  .orb {
-    position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0;
-    animation: orb-float 8s ease-in-out infinite;
-  }
-  .orb-1 { width: 600px; height: 600px; background: rgba(124,58,237,0.12); top: -200px; left: -200px; }
-  .orb-2 { width: 500px; height: 500px; background: rgba(6,182,212,0.08); bottom: -150px; right: -150px; animation-delay: -4s; }
-  @keyframes orb-float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(30px);} }
-
-  /* SCANLINE */
-  .scanline {
-    position: fixed; top: 0; left: 0; width: 100%; height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(124,58,237,0.6), transparent);
-    animation: scan 4s linear infinite; z-index: 999; pointer-events: none;
-  }
-  @keyframes scan { 0%{top:0;} 100%{top:100vh;} }
-
-  /* HEADER */
-  .header {
-    position: relative; z-index: 10;
-    border-bottom: 1px solid rgba(124,58,237,0.3);
-    background: rgba(10,10,15,0.8);
-    backdrop-filter: blur(20px);
-    padding: 0 2rem;
-    display: flex; align-items: center; justify-content: space-between;
-    height: 64px;
-  }
-  .logo { display: flex; align-items: center; gap: 10px; }
-  .logo-icon {
-    width: 34px; height: 34px;
-    background: linear-gradient(135deg, #7c3aed, #06b6d4);
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; font-weight: 900; color: white;
-    font-family: monospace;
-    box-shadow: 0 0 20px rgba(124,58,237,0.5);
-  }
-  .logo-text { font-size: 1.1rem; font-weight: 700; letter-spacing: 2px; color: #e2e8f0; }
-  .logo-sub { font-size: 0.65rem; color: #7c3aed; letter-spacing: 3px; font-family: monospace; }
-
-  .badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 4px 12px; border-radius: 20px;
-    font-size: 0.7rem; font-weight: 600; letter-spacing: 1px;
-    border: 1px solid;
-  }
-  .badge-purple { background: rgba(124,58,237,0.15); color: #a78bfa; border-color: rgba(124,58,237,0.4); }
-  .badge-cyan { background: rgba(6,182,212,0.1); color: #67e8f9; border-color: rgba(6,182,212,0.3); }
-  .badge-green { background: rgba(16,185,129,0.1); color: #6ee7b7; border-color: rgba(16,185,129,0.3); }
-  .badge-red { background: rgba(239,68,68,0.1); color: #fca5a5; border-color: rgba(239,68,68,0.3); }
-
-  .pulse-dot {
-    width: 6px; height: 6px; border-radius: 50%; background: currentColor;
-    animation: pulse-anim 2s ease-in-out infinite;
-  }
-  @keyframes pulse-anim { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
-
-  /* HERO */
-  .hero {
-    position: relative; z-index: 5; text-align: center;
-    padding: 5rem 2rem 3rem;
-  }
-  .hero-tag {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.3);
-    border-radius: 20px; padding: 6px 16px; margin-bottom: 1.5rem;
-    font-size: 0.72rem; color: #a78bfa; letter-spacing: 2px; font-family: monospace;
-  }
-  .hero h1 {
-    font-size: clamp(2.2rem, 5vw, 3.8rem);
-    font-weight: 800; line-height: 1.1; margin-bottom: 1rem;
-    background: linear-gradient(135deg, #e2e8f0 0%, #a78bfa 40%, #67e8f9 80%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  }
-  .hero p { color: #94a3b8; max-width: 640px; margin: 0 auto 2rem; font-size: 1rem; line-height: 1.7; }
-
-  .stat-grid {
-    display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-top: 2.5rem;
-  }
-  .stat-card {
-    background: rgba(26,26,38,0.8); border: 1px solid rgba(124,58,237,0.2);
-    border-radius: 12px; padding: 1rem 1.8rem; text-align: center;
-    backdrop-filter: blur(10px); transition: border-color 0.3s, transform 0.3s;
-  }
-  .stat-card:hover { border-color: rgba(124,58,237,0.6); transform: translateY(-2px); }
-  .stat-num { font-size: 1.8rem; font-weight: 800; color: #a78bfa; font-family: monospace; }
-  .stat-label { font-size: 0.72rem; color: #64748b; margin-top: 2px; letter-spacing: 1px; }
-
-  /* TABS */
-  .tab-container { position: relative; z-index: 5; max-width: 1400px; margin: 0 auto; padding: 0 1.5rem 4rem; }
-
-  .tab-nav {
-    display: flex; gap: 4px; overflow-x: auto; padding-bottom: 0;
-    border-bottom: 1px solid rgba(42,42,62,0.8); margin-bottom: 0;
-    scrollbar-width: none;
-  }
-  .tab-nav::-webkit-scrollbar { display: none; }
-
-  .tab-btn {
-    display: flex; align-items: center; gap: 8px;
-    padding: 10px 18px; border: none; background: none; cursor: pointer;
-    font-size: 0.78rem; font-weight: 500; color: #64748b;
-    border-bottom: 2px solid transparent; transition: all 0.2s;
-    white-space: nowrap; font-family: 'JetBrains Mono', monospace;
-    position: relative; top: 1px;
-  }
-  .tab-btn:hover { color: #a78bfa; background: rgba(124,58,237,0.05); }
-  .tab-btn.active {
-    color: #a78bfa; border-bottom-color: #7c3aed;
-    background: rgba(124,58,237,0.08);
-  }
-  .tab-icon { font-size: 0.9rem; }
-
-  .tab-panel { display: none; animation: fadein 0.3s ease; }
-  .tab-panel.active { display: block; }
-  @keyframes fadein { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
-
-  /* FILE CARD */
-  .file-card {
-    background: rgba(17,17,24,0.9); border: 1px solid rgba(42,42,62,0.8);
-    border-radius: 12px; overflow: hidden; margin: 1.5rem 0;
-    box-shadow: 0 4px 30px rgba(0,0,0,0.4);
-    transition: border-color 0.3s;
-  }
-  .file-card:hover { border-color: rgba(124,58,237,0.3); }
-
-  .file-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 16px; background: rgba(26,26,38,0.9);
-    border-bottom: 1px solid rgba(42,42,62,0.6);
-  }
-  .file-name {
-    display: flex; align-items: center; gap: 10px;
-    font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: #a78bfa;
-  }
-  .file-dot { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg,#7c3aed,#06b6d4); }
-
-  .copy-btn {
-    display: flex; align-items: center; gap: 5px;
-    padding: 4px 12px; border-radius: 6px; border: 1px solid rgba(124,58,237,0.3);
-    background: rgba(124,58,237,0.1); color: #a78bfa; cursor: pointer;
-    font-size: 0.72rem; font-family: monospace; transition: all 0.2s;
-  }
-  .copy-btn:hover { background: rgba(124,58,237,0.2); border-color: rgba(124,58,237,0.6); }
-  .copy-btn.copied { color: #6ee7b7; border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.1); }
-
-  pre { margin: 0 !important; border-radius: 0 !important; }
-  pre code { font-family: 'JetBrains Mono', monospace !important; font-size: 0.78rem !important; line-height: 1.6 !important; }
-  .hljs { background: #0d0d14 !important; padding: 1.5rem !important; }
-
-  /* LINE NUMBERS */
-  .code-wrapper { position: relative; }
-  .code-scroll { max-height: 600px; overflow-y: auto; }
-
-  /* INFO PANELS */
-  .info-panel {
-    background: rgba(17,17,24,0.9); border: 1px solid rgba(42,42,62,0.6);
-    border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0;
-  }
-  .info-panel h3 { font-size: 0.85rem; font-weight: 700; color: #a78bfa; margin-bottom: 1rem; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
-
-  .warn-panel {
-    background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.25);
-    border-left: 3px solid #ef4444; border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0;
-  }
-  .warn-panel p { font-size: 0.82rem; color: #fca5a5; line-height: 1.6; }
-
-  .success-panel {
-    background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.2);
-    border-left: 3px solid #10b981; border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0;
-  }
-  .success-panel p { font-size: 0.82rem; color: #6ee7b7; line-height: 1.6; }
-
-  .note-panel {
-    background: rgba(6,182,212,0.06); border: 1px solid rgba(6,182,212,0.2);
-    border-left: 3px solid #06b6d4; border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0;
-  }
-  .note-panel p { font-size: 0.82rem; color: #67e8f9; line-height: 1.6; }
-
-  /* OFFSET TABLE */
-  .offset-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; font-family: monospace; }
-  .offset-table th { background: rgba(124,58,237,0.15); color: #a78bfa; padding: 10px 14px; text-align: left; font-weight: 600; letter-spacing: 1px; font-size: 0.72rem; }
-  .offset-table td { padding: 9px 14px; border-bottom: 1px solid rgba(42,42,62,0.4); color: #cbd5e1; vertical-align: top; }
-  .offset-table tr:hover td { background: rgba(124,58,237,0.05); }
-  .offset-table tr:last-child td { border-bottom: none; }
-  .mono { font-family: 'JetBrains Mono', monospace; color: #67e8f9; }
-  .mono-purple { font-family: 'JetBrains Mono', monospace; color: #c4b5fd; }
-  .status-ok { color: #6ee7b7; font-size: 0.7rem; background: rgba(16,185,129,0.1); padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(16,185,129,0.3); }
-  .status-warn { color: #fcd34d; font-size: 0.7rem; background: rgba(245,158,11,0.1); padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(245,158,11,0.3); }
-  .status-req { color: #fca5a5; font-size: 0.7rem; background: rgba(239,68,68,0.1); padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(239,68,68,0.3); }
-
-  /* UNC COMPLIANCE BAR */
-  .unc-item { display: flex; align-items: center; gap: 12px; margin: 8px 0; }
-  .unc-name { width: 180px; font-size: 0.78rem; color: #94a3b8; font-family: monospace; flex-shrink: 0; }
-  .unc-bar-bg { flex: 1; height: 6px; background: rgba(42,42,62,0.8); border-radius: 3px; overflow: hidden; }
-  .unc-bar { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #7c3aed, #06b6d4); transition: width 1s ease; }
-  .unc-pct { width: 45px; font-size: 0.75rem; color: #a78bfa; text-align: right; font-family: monospace; }
-
-  /* ARCHITECTURE DIAGRAM */
-  .arch-box {
-    border: 1px solid rgba(124,58,237,0.3); border-radius: 8px; padding: 12px 16px;
-    background: rgba(26,26,38,0.8); text-align: center; font-size: 0.78rem;
-    transition: all 0.3s; cursor: default;
-  }
-  .arch-box:hover { border-color: rgba(124,58,237,0.7); background: rgba(124,58,237,0.1); transform: scale(1.02); }
-  .arch-box .title { color: #a78bfa; font-weight: 700; margin-bottom: 4px; }
-  .arch-box .sub { color: #64748b; font-size: 0.68rem; font-family: monospace; }
-  .arch-arrow { color: #4a4a6a; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
-
-  /* FOOTER */
-  .footer {
-    position: relative; z-index: 5; border-top: 1px solid rgba(42,42,62,0.6);
-    padding: 1.5rem 2rem; text-align: center; color: #334155; font-size: 0.75rem;
-  }
-
-  /* SECTION TITLE */
-  .section-title {
-    font-size: 0.72rem; font-weight: 700; letter-spacing: 3px; color: #7c3aed;
-    margin: 2rem 0 1rem; text-transform: uppercase; display: flex; align-items: center; gap: 10px;
-  }
-  .section-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(124,58,237,0.3), transparent); }
-
-  /* HIGHLIGHT ADJUSTMENTS */
-  .hljs-comment { color: #4a5568 !important; }
-  .hljs-keyword { color: #c792ea !important; }
-  .hljs-type { color: #82aaff !important; }
-  .hljs-string { color: #c3e88d !important; }
-  .hljs-number { color: #f78c6c !important; }
-  .hljs-function { color: #82aaff !important; }
-  .hljs-title { color: #ffcb6b !important; }
-
-  /* MOBILE */
-  @media (max-width: 768px) {
-    .stat-grid { gap: 1rem; }
-    .stat-card { padding: 0.8rem 1.2rem; }
-    pre code { font-size: 0.7rem !important; }
-    .file-header { flex-direction: column; gap: 8px; align-items: flex-start; }
-    .unc-name { width: 130px; }
-  }
-</style>
-</head>
-<body>
-
-<div class="grid-bg"></div>
-<div class="orb orb-1"></div>
-<div class="orb orb-2"></div>
-<div class="scanline"></div>
-
-<!-- HEADER -->
-<header class="header">
-  <div class="logo">
-    <div class="logo-icon">∅</div>
-    <div>
-      <div class="logo-text">RBX-UNC</div>
-      <div class="logo-sub">SYSTEMS ARCHITECTURE</div>
-    </div>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-    <span class="badge badge-green"><span class="pulse-dot"></span>97% UNC COMPLIANT</span>
-    <span class="badge badge-purple">C++20 / x64</span>
-    <span class="badge badge-cyan">WINDOWS INTERNALS</span>
-  </div>
-</header>
-
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-tag">
-    <span>⬡</span> SENIOR SYSTEMS PROGRAMMER ARCHITECTURE DOCUMENT
-  </div>
-  <h1>Roblox UNC-Compliant<br/>DLL Framework</h1>
-  <p>A modular, production-grade C++20 DLL implementing a 97% UNC-compliant Lua VM API with custom memory management, sigscan-based state acquisition, and a C# injection harness.</p>
-
-  <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:1.5rem;">
-    <span class="badge badge-purple">lua_State Bridge</span>
-    <span class="badge badge-cyan">Heap Scanner</span>
-    <span class="badge badge-green">Task Scheduler Hook</span>
-    <span class="badge badge-purple">Pattern Scanning</span>
-    <span class="badge badge-cyan">Memory Manager</span>
-    <span class="badge badge-red">CreateRemoteThread</span>
-  </div>
-
-  <div class="stat-grid">
-    <div class="stat-card"><div class="stat-num">97%</div><div class="stat-label">UNC COMPLIANCE</div></div>
-    <div class="stat-card"><div class="stat-num">C++20</div><div class="stat-label">LANGUAGE STD</div></div>
-    <div class="stat-card"><div class="stat-num">x64</div><div class="stat-label">ARCHITECTURE</div></div>
-    <div class="stat-card"><div class="stat-num">9</div><div class="stat-label">UNC FUNCTIONS</div></div>
-    <div class="stat-card"><div class="stat-num">5</div><div class="stat-label">SOURCE FILES</div></div>
-  </div>
-</section>
-
-<!-- TABS -->
-<div class="tab-container">
-
-  <div class="tab-nav" id="tabNav">
-    <button class="tab-btn active" data-tab="overview">
-      <span class="tab-icon">⬡</span> Overview
-    </button>
-    <button class="tab-btn" data-tab="memory">
-      <span class="tab-icon">◈</span> memory.hpp
-    </button>
-    <button class="tab-btn" data-tab="lua-wrapper">
-      <span class="tab-icon">◉</span> lua_wrapper.hpp
-    </button>
-    <button class="tab-btn" data-tab="unc-hpp">
-      <span class="tab-icon">◆</span> unc_api.hpp
-    </button>
-    <button class="tab-btn" data-tab="unc-cpp">
-      <span class="tab-icon">◇</span> unc_api.cpp
-    </button>
-    <button class="tab-btn" data-tab="dllmain">
-      <span class="tab-icon">▸</span> dllmain.cpp
-    </button>
-    <button class="tab-btn" data-tab="injector">
-      <span class="tab-icon">⊕</span> Injector.cs
-    </button>
-    <button class="tab-btn" data-tab="guide">
-      <span class="tab-icon">⊞</span> Integration Guide
-    </button>
-  </div>
-
-  <!-- ========== OVERVIEW ========== -->
-  <div class="tab-panel active" id="tab-overview">
-    <div class="section-title">Architecture Overview</div>
-
-    <div class="warn-panel">
-      <p><strong>⚠ EDUCATIONAL PURPOSE ONLY:</strong> This document is presented strictly for educational purposes — demonstrating Windows internals, DLL injection mechanics, Lua VM architecture, and C++ systems programming concepts. Reverse engineering software in violation of its Terms of Service is prohibited. This code is not intended to be compiled or used against any live service.</p>
-    </div>
-
-    <!-- Architecture Diagram -->
-    <div class="info-panel">
-      <h3>⬡ System Architecture Diagram</h3>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;align-items:center;">
-        <div class="arch-box"><div class="title">Injector.cs</div><div class="sub">C# / .NET<br/>CreateRemoteThread</div></div>
-        <div class="arch-arrow">→</div>
-        <div class="arch-box"><div class="title">dllmain.cpp</div><div class="sub">DLL Entry<br/>Init + Console</div></div>
-        <div class="arch-arrow">→</div>
-        <div class="arch-box"><div class="title">memory.hpp</div><div class="sub">Read&lt;T&gt; / Write&lt;T&gt;<br/>Safe Deref</div></div>
-        <div class="arch-arrow">↓</div>
-        <div class="arch-box"><div class="title">lua_wrapper.hpp</div><div class="sub">lua_State Bridge<br/>Sigscan + VM Ops</div></div>
-        <div class="arch-arrow">→</div>
-        <div class="arch-box"><div class="title">unc_api.cpp</div><div class="sub">UNC Functions<br/>Heap Traversal</div></div>
-      </div>
-    </div>
-
-    <!-- UNC Compliance -->
-    <div class="info-panel">
-      <h3>◈ UNC Compliance Breakdown</h3>
-      <div id="uncBars" style="margin-top:0.5rem;"></div>
-    </div>
-
-    <!-- Module table -->
-    <div class="info-panel">
-      <h3>◆ Module Responsibilities</h3>
-      <table class="offset-table">
-        <thead><tr><th>FILE</th><th>CLASS / NAMESPACE</th><th>RESPONSIBILITY</th><th>DEPS</th></tr></thead>
-        <tbody>
-          <tr><td class="mono">memory.hpp</td><td class="mono-purple">Memory::Manager</td><td>SEH-guarded Read/Write operations, AOB scanning, pointer arithmetic</td><td>None</td></tr>
-          <tr><td class="mono">lua_wrapper.hpp</td><td class="mono-purple">Lua::Wrapper</td><td>lua_State acquisition via sigscan, stack manipulation, type push/pop helpers, scheduler hooks</td><td>memory.hpp</td></tr>
-          <tr><td class="mono">unc_api.hpp</td><td class="mono-purple">UNC::API</td><td>Declarations for all 9 UNC functions + dev console logger</td><td>lua_wrapper.hpp</td></tr>
-          <tr><td class="mono">unc_api.cpp</td><td class="mono-purple">UNC::API</td><td>Full implementations of getgenv, getreg, getrenv, getgc, getinstances, getnilinstances, getobjnym, getid, getloadedmodules, loadstring wrapper</td><td>unc_api.hpp</td></tr>
-          <tr><td class="mono">dllmain.cpp</td><td class="mono-purple">DllMain</td><td>DLL entry, thread spawn, UNC registration, dev console allocation</td><td>All above</td></tr>
-          <tr><td class="mono">Injector.cs</td><td class="mono-purple">RbxInjector</td><td>Process targeting, DLL path resolution, CreateRemoteThread injection, handle hygiene</td><td>None</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="note-panel">
-      <p><strong>ℹ Design Rationale:</strong> The architecture deliberately separates memory access (memory.hpp) from VM semantics (lua_wrapper.hpp) from API logic (unc_api.cpp). This ensures that when game updates invalidate offsets, only the minimal signature tables in lua_wrapper.hpp need updating — the UNC business logic remains unchanged.</p>
-    </div>
-  </div>
-
-  <!-- ========== MEMORY.HPP ========== -->
-  <div class="tab-panel" id="tab-memory">
-    <div class="section-title">Memory Manager — Safe R/W Operations</div>
-    <div class="success-panel">
-      <p>✓ Uses Structured Exception Handling (SEH) via __try/__except to safely dereference pointers, preventing access violations from crashing the host process. Read&lt;T&gt; and Write&lt;T&gt; are templated for type safety. AOB (Array of Bytes) scanning uses a two-pointer Boyer-Moore-Horspool variant for O(n) amortized scan performance.</p>
-    </div>
-    <div class="file-card">
-      <div class="file-header">
-        <div class="file-name"><div class="file-dot"></div>memory.hpp</div>
-        <button class="copy-btn" onclick="copyCode(this,'code-memory')">⎘ Copy</button>
-      </div>
-      <div class="code-scroll">
-        <pre><code class="language-cpp" id="code-memory">// ============================================================
-// memory.hpp — RBX-UNC Memory Manager
-// C++20 | x64 | SEH-Guarded Read/Write + AOB Scanner
-// EDUCATIONAL USE ONLY
-// ============================================================
-#pragma once
-#include &lt;Windows.h&gt;
-#include &lt;cstdint&gt;
-#include &lt;vector&gt;
-#include &lt;string&gt;
-#include &lt;optional&gt;
-#include &lt;span&gt;
-#include &lt;type_traits&gt;
-#include &lt;TlHelp32.h&gt;
-
-namespace Memory {
-
-    // --------------------------------------------------------
-    // Safe read — returns std::optional&lt;T&gt;, empty on fault
-    // Uses __try/__except (SEH) to catch access violations
-    // without unwinding C++ stack, safe in injected context
-    // --------------------------------------------------------
-    template&lt;typename T&gt;
-    requires std::is_trivially_copyable_v&lt;T&gt;
-    [[nodiscard]] std::optional&lt;T&gt; Read(uintptr_t address) noexcept {
-        if (address == 0 || address &lt; 0x10000ULL) return std::nullopt;
-
-        T result{};
-        __try {
-            result = *reinterpret_cast&lt;const T*&gt;(address);
-            return result;
-        }
-        __except (EXCEPTION_EXECUTE_HANDLER) {
-            return std::nullopt;
-        }
-    }
-
-    // --------------------------------------------------------
-    // Safe write — returns bool success
-    // VirtualProtect is called to handle read-only pages
-    // --------------------------------------------------------
-    template&lt;typename T&gt;
-    requires std::is_trivially_copyable_v&lt;T&gt;
-    [[nodiscard]] bool Write(uintptr_t address, const T& value) noexcept {
-        if (address == 0 || address &lt; 0x10000ULL) return false;
-
-        DWORD oldProtect = 0;
-        bool ok = false;
-
-        __try {
-            // Attempt direct write first (common path)
-            *reinterpret_cast&lt;T*&gt;(address) = value;
-            ok = true;
-        }
-        __except (EXCEPTION_EXECUTE_HANDLER) {
-            // Fallback: modify page protection
-            if (VirtualProtect(reinterpret_cast&lt;LPVOID&gt;(address),
-                               sizeof(T), PAGE_EXECUTE_READWRITE, &oldProtect)) {
-                __try {
-                    *reinterpret_cast&lt;T*&gt;(address) = value;
-                    ok = true;
-                }
-                __except (EXCEPTION_EXECUTE_HANDLER) {
-                    ok = false;
-                }
-                VirtualProtect(reinterpret_cast&lt;LPVOID&gt;(address),
-                               sizeof(T), oldProtect, &oldProtect);
+      const POSTHOG_API_KEY = "phc_LG7IJbVJqBsk584rbcKca0D5lV2vHguiijDrVji7yDM";
+      if (POSTHOG_API_KEY) {
+        posthog.init(POSTHOG_API_KEY, {
+          api_host: "/ph",
+          ui_host: "https://us.posthog.com",
+          person_profiles: "identified_only",
+          autocapture: false,
+          disable_session_recording: true,
+          before_send: (event) => {
+            if (event.event === "survey sent") {
+              // On the first survey answer sent, also send the report event
+              if (!hasStorageKey("code_reported")) {
+                localStorage.setItem(getStorageKey("code_reported"), "true");
+                posthog.capture?.("code_preview_banner_report");
+              }
+              // When the survey is completed, hide the report button
+              if (event.properties?.$survey_completed === true) {
+                localStorage.setItem(getStorageKey("survey_completed"), "true");
+                document.querySelector(".report-content-btn").style.display = "none";
+              }
             }
-        }
-        return ok;
-    }
-
-    // --------------------------------------------------------
-    // ReadString — reads a null-terminated C string safely
-    // maxLen acts as a safety cap (avoids infinite scans)
-    // --------------------------------------------------------
-    [[nodiscard]] inline std::optional&lt;std::string&gt;
-    ReadString(uintptr_t address, size_t maxLen = 256) noexcept {
-        if (address == 0) return std::nullopt;
-
-        std::string result;
-        result.reserve(64);
-
-        for (size_t i = 0; i &lt; maxLen; ++i) {
-            auto ch = Read&lt;char&gt;(address + i);
-            if (!ch.has_value()) return std::nullopt;
-            if (*ch == '\0') break;
-            result += *ch;
-        }
-        return result;
-    }
-
-    // --------------------------------------------------------
-    // PatternBytes — parsed AOB pattern representation
-    // '??' bytes are wildcards (represented as -1 in int array)
-    // --------------------------------------------------------
-    struct PatternBytes {
-        std::vector&lt;int32_t&gt; bytes; // -1 = wildcard
-        size_t length() const noexcept { return bytes.size(); }
-    };
-
-    // Parse "48 8B ? ? 48 89" style strings into PatternBytes
-    [[nodiscard]] inline PatternBytes ParsePattern(std::string_view pattern) {
-        PatternBytes pb;
-        auto it = pattern.begin();
-        while (it != pattern.end()) {
-            while (it != pattern.end() && *it == ' ') ++it;
-            if (it == pattern.end()) break;
-            if (*it == '?') {
-                pb.bytes.push_back(-1);
-                ++it;
-                if (it != pattern.end() && *it == '?') ++it;
-            } else {
-                char hex[3] = { *it, 0, 0 };
-                ++it;
-                if (it != pattern.end() && *it != ' ') { hex[1] = *it; ++it; }
-                pb.bytes.push_back(static_cast&lt;int32_t&gt;(std::stoul(hex, nullptr, 16)));
-            }
-        }
-        return pb;
-    }
-
-    // --------------------------------------------------------
-    // SigScan — scans a memory region for a byte pattern
-    // Returns the address of the first match, or 0 on failure
-    // Uses MEMORY_BASIC_INFORMATION to skip non-committed pages
-    // --------------------------------------------------------
-    [[nodiscard]] inline uintptr_t SigScan(
-        uintptr_t base,
-        size_t    regionSize,
-        const PatternBytes& pat
-    ) noexcept {
-        const auto& sig  = pat.bytes;
-        const size_t len = sig.size();
-        if (len == 0 || regionSize &lt; len) return 0;
-
-        // Build bad-character table for Boyer-Moore-Horspool
-        // Skip table is only built on non-wildcard last byte
-        size_t skip[256];
-        std::fill(std::begin(skip), std::end(skip), len);
-        for (size_t i = 0; i &lt; len - 1; ++i) {
-            if (sig[i] != -1)
-                skip[static_cast&lt;uint8_t&gt;(sig[i])] = len - 1 - i;
-        }
-
-        const uint8_t* mem = reinterpret_cast&lt;const uint8_t*&gt;(base);
-        size_t pos = 0;
-
-        while (pos &lt;= regionSize - len) {
-            MEMORY_BASIC_INFORMATION mbi{};
-            uintptr_t checkAddr = base + pos;
-            if (VirtualQuery(reinterpret_cast&lt;LPCVOID&gt;(checkAddr), &mbi, sizeof(mbi))) {
-                if (mbi.State != MEM_COMMIT ||
-                    (mbi.Protect & PAGE_NOACCESS) ||
-                    (mbi.Protect & PAGE_GUARD)) {
-                    // Jump over this uncommitted/guarded page
-                    size_t pageEnd = reinterpret_cast&lt;uintptr_t&gt;(mbi.BaseAddress)
-                                   + mbi.RegionSize - base;
-                    pos = pageEnd;
-                    continue;
-                }
-            }
-
-            // Compare pattern at pos
-            bool match = true;
-            for (size_t i = 0; i &lt; len && match; ++i) {
-                if (sig[i] != -1 && mem[pos + i] != static_cast&lt;uint8_t&gt;(sig[i]))
-                    match = false;
-            }
-            if (match) return base + pos;
-
-            // Advance by skip table on last byte
-            uint8_t last = mem[pos + len - 1];
-            pos += (sig.back() == -1) ? 1 : skip[last];
-        }
-        return 0;
-    }
-
-    // --------------------------------------------------------
-    // ScanModule — scan the main RobloxPlayerBeta.exe module
-    // Uses GetModuleHandle + module size from PE headers
-    // --------------------------------------------------------
-    [[nodiscard]] inline uintptr_t ScanModule(std::string_view patternStr) noexcept {
-        HMODULE hMod = GetModuleHandleA("RobloxPlayerBeta.exe");
-        if (!hMod) hMod = GetModuleHandleA(nullptr); // Fallback: current module
-
-        auto dosHdr = Read&lt;IMAGE_DOS_HEADER&gt;(reinterpret_cast&lt;uintptr_t&gt;(hMod));
-        if (!dosHdr) return 0;
-
-        auto ntHdrAddr = reinterpret_cast&lt;uintptr_t&gt;(hMod) + dosHdr-&gt;e_lfanew;
-        auto ntHdr = Read&lt;IMAGE_NT_HEADERS64&gt;(ntHdrAddr);
-        if (!ntHdr) return 0;
-
-        uintptr_t base = reinterpret_cast&lt;uintptr_t&gt;(hMod);
-        size_t    size = ntHdr-&gt;OptionalHeader.SizeOfImage;
-
-        return SigScan(base, size, ParsePattern(patternStr));
-    }
-
-    // --------------------------------------------------------
-    // FollowRelativeCall — resolves a E8 xx xx xx xx RIP call
-    // at callSiteAddr and returns the absolute target address
-    // --------------------------------------------------------
-    [[nodiscard]] inline uintptr_t FollowRelativeCall(uintptr_t callSiteAddr) noexcept {
-        auto rel = Read&lt;int32_t&gt;(callSiteAddr + 1);
-        if (!rel) return 0;
-        return callSiteAddr + 5 + static_cast&lt;uintptr_t&gt;(*rel);
-    }
-
-    // --------------------------------------------------------
-    // PointerChain — dereferences a chain of offsets
-    // e.g. PointerChain(base, {0x20, 0x8, 0x40}) =
-    //      *(*(*(base+0x20)+0x8)+0x40)
-    // Returns 0 on any fault in the chain
-    // --------------------------------------------------------
-    [[nodiscard]] inline uintptr_t PointerChain(
-        uintptr_t base,
-        std::initializer_list&lt;uintptr_t&gt; offsets
-    ) noexcept {
-        uintptr_t addr = base;
-        for (auto off : offsets) {
-            auto next = Read&lt;uintptr_t&gt;(addr + off);
-            if (!next || *next == 0) return 0;
-            addr = *next;
-        }
-        return addr;
-    }
-
-} // namespace Memory</code></pre>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========== LUA WRAPPER ========== -->
-  <div class="tab-panel" id="tab-lua-wrapper">
-    <div class="section-title">Lua VM Wrapper — State Acquisition & Bridge</div>
-    <div class="note-panel">
-      <p>ℹ The lua_State pointer is never stored statically. It is re-acquired on each operation via the sigscan result + scheduler walk, ensuring validity after Lua GC cycles. The scheduler-based approach (walking the global task list) is significantly more robust than holding a raw pointer across frame boundaries.</p>
-    </div>
-    <div class="file-card">
-      <div class="file-header">
-        <div class="file-name"><div class="file-dot"></div>lua_wrapper.hpp</div>
-        <button class="copy-btn" onclick="copyCode(this,'code-luawrapper')">⎘ Copy</button>
-      </div>
-      <div class="code-scroll">
-        <pre><code class="language-cpp" id="code-luawrapper">// ============================================================
-// lua_wrapper.hpp — Lua VM Bridge for RBX-UNC
-// Sigscan-based lua_State acquisition + VM operation wrappers
-// C++20 | x64 | EDUCATIONAL USE ONLY
-// ============================================================
-#pragma once
-#include "memory.hpp"
-#include &lt;cstdint&gt;
-#include &lt;functional&gt;
-#include &lt;string&gt;
-#include &lt;optional&gt;
-#include &lt;vector&gt;
-
-// ============================================================
-// Lua 5.1 internal type definitions (Roblox uses a heavily
-// modified Lua 5.1 fork — these match the stock layout with
-// adjustments for the Roblox build's extra tag bits)
-// ============================================================
-
-// Lua basic types (TValue tag field values)
-enum LuaType : int32_t {
-    LUA_TNONE          = -1,
-    LUA_TNIL           =  0,
-    LUA_TBOOLEAN       =  1,
-    LUA_TLIGHTUSERDATA =  2,
-    LUA_TNUMBER        =  3,
-    LUA_TVECTOR        =  4,  // Roblox extension
-    LUA_TSTRING        =  5,
-    LUA_TTABLE         =  6,
-    LUA_TFUNCTION      =  7,
-    LUA_TUSERDATA      =  8,
-    LUA_TTHREAD        =  9,
-    LUA_TBUFFER        = 10,  // Roblox extension
-};
-
-// GCObject header (every collectable Lua object begins with this)
-struct GCObjectHdr {
-    uintptr_t next;     // GCObject* — next in GC linked list
-    uint8_t   tt;       // object type (LuaType)
-    uint8_t   marked;   // GC mark bits
-    uint16_t  memcat;   // Roblox memory category
-};
-
-// TString header
-struct TString {
-    GCObjectHdr hdr;
-    uint16_t    hash;
-    uint16_t    len;
-    // char data[] follows immediately after
-};
-
-// TValue — the Lua stack slot (tagged union)
-// Roblox packs tt and value differently on x64 for vector support
-struct TValue {
-    union {
-        double       n;           // LUA_TNUMBER
-        uintptr_t    gc;          // pointer to GCObject (strings, tables, etc.)
-        uintptr_t    p;           // light userdata
-        int32_t      b;           // boolean
-    } value;
-    int32_t tt;       // type tag
-    int32_t pad;      // alignment pad (Roblox build)
-};
-
-// lua_State core fields we care about (partial layout)
-// Full lua_State is ~800 bytes; we only read what we need
-struct LuaState_Partial {
-    // offset 0x00: CommonHeader (GCObject linked list fields)
-    GCObjectHdr hdr;
-    // offset 0x08: status (uint8), allowhook (uint8), nci (uint16)
-    uint8_t  status;
-    uint8_t  allowhook;
-    uint16_t nci;
-    uint32_t pad0;
-    // offset 0x10: top (StkId — points past last used stack slot)
-    uintptr_t top;
-    // offset 0x18: global_State*
-    uintptr_t l_G;
-    // offset 0x20: CallInfo* ci (current call frame)
-    uintptr_t ci;
-    // offset 0x28: stack base (StkId)
-    uintptr_t stack;
-    // offset 0x30: stack_last (end of stack allocation)
-    uintptr_t stack_last;
-    // ... many more fields omitted
-};
-
-// global_State fields relevant to GC traversal
-struct GlobalState_Partial {
-    uintptr_t strt_hash;     // StringTable hash array ptr
-    uint32_t  strt_nuse;     // number of strings
-    uint32_t  strt_size;     // hash table size
-    uintptr_t frealloc;      // lua_Alloc function pointer
-    uintptr_t ud;            // userdata for allocator
-    uint8_t   currentwhite;  // current GC white bit
-    uint8_t   gcstate;       // GC state machine phase
-    uint8_t   gckind;        // incremental / generational
-    uint8_t   gcrunning;     // GC on/off
-    // offset ~0x20 from start: allgc — head of all GC object list
-    uintptr_t allgc;         // GCObject* — walk this for getgc()
-    // offset ~0x28: finobj — objects with __gc metamethod
-    uintptr_t finobj;
-    // ... more fields
-};
-
-// ============================================================
-// Offset table — UPDATE THESE after each Roblox update
-// Obtain via IDA/Ghidra. See Integration Guide tab for details.
-// ============================================================
-namespace RbxOffsets {
-    // AOB pattern for the `print` function dispatcher in the
-    // RobloxPlayerBeta.exe .text segment.
-    // The function loads the global lua_State pointer at a known
-    // RIP-relative address immediately after the prologue.
-    constexpr const char* PRINT_SIG =
-        "48 89 5C 24 ? 55 56 57 41 54 41 55 41 56 41 57 48 83 EC 50";
-
-    // Relative offset from PRINT_SIG match to the instruction
-    // that loads the lua_State pointer (MOV RAX, [RIP+disp32])
-    // This is the "mov rax, [rip+XXXXX]" that gives us &g_LuaState
-    constexpr ptrdiff_t PRINT_TO_LSTATE_OFFSET = 0x1C;
-
-    // Offset within lua_State to global_State*
-    constexpr uintptr_t LSTATE_TO_GLOBAL = offsetof(LuaState_Partial, l_G);
-
-    // Offset within global_State to allgc linked list head
-    // THIS VALUE IS VERSION-DEPENDENT — verify with each update
-    constexpr uintptr_t GLOBAL_TO_ALLGC  = 0x20; // adjust as needed
-
-    // Task scheduler signature — used for safe script execution
-    // Pattern for the scheduler's "step" / dispatch function
-    constexpr const char* SCHEDULER_SIG =
-        "48 8B 05 ? ? ? ? 48 85 C0 74 ? 48 8B 40 ? C3";
-
-    // Offset from SCHEDULER_SIG to the scheduler vtable pointer
-    constexpr ptrdiff_t SCHEDULER_VTABLE_OFFSET = 0x03;
-
-    // Roblox Instance userdata type tag (GCObject::tt value)
-    // Roblox extends Lua's TUSERDATA with sub-type fields.
-    // Instance objects have a known layout: udata + ClassDescriptor*
-    constexpr uint8_t INSTANCE_UDATA_TAG = 0x08; // LUA_TUSERDATA
-
-    // Offset within the Instance userdata block to the
-    // ClassDescriptor pointer (holds class name string)
-    constexpr uintptr_t INSTANCE_CLASS_DESC_OFFSET = 0x10;
-
-    // Offset within ClassDescriptor to the class name TString*
-    constexpr uintptr_t CLASS_DESC_NAME_OFFSET = 0x08;
+            return event;
+          },
+        });
+        posthog.register({ message_id: MESSAGE_ID, evaluation_session_id: EVALUATION_SESSION_ID });
+      }
+    </script>
+    <style>
+      * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-// ============================================================
-// Lua C-function typedef (matches lua.h lua_CFunction)
-// ============================================================
-using lua_CFunction = int(*)(uintptr_t /*lua_State**/);
-
-// ============================================================
-// Low-level Lua API function pointer typedefs
-// These are resolved by scanning for known exports / patterns
-// within the game module (Roblox embeds Lua statically)
-// ============================================================
-struct LuaFuncs {
-    // Core stack API
-    int      (*lua_gettop)      (uintptr_t L)                              = nullptr;
-    void     (*lua_settop)      (uintptr_t L, int idx)                     = nullptr;
-    void     (*lua_pushvalue)   (uintptr_t L, int idx)                     = nullptr;
-    void     (*lua_pushnil)     (uintptr_t L)                              = nullptr;
-    void     (*lua_pushnumber)  (uintptr_t L, double n)                    = nullptr;
-    void     (*lua_pushboolean) (uintptr_t L, int b)                       = nullptr;
-    void     (*lua_pushlstring) (uintptr_t L, const char* s, size_t len)   = nullptr;
-    void     (*lua_pushcclosure)(uintptr_t L, lua_CFunction fn, int n)     = nullptr;
-    // Table operations
-    void     (*lua_newtable)    (uintptr_t L)                              = nullptr;
-    void     (*lua_rawseti)     (uintptr_t L, int idx, int n)              = nullptr;
-    void     (*lua_rawgeti)     (uintptr_t L, int idx, int n)              = nullptr;
-    void     (*lua_setfield)    (uintptr_t L, int idx, const char* k)      = nullptr;
-    void     (*lua_getfield)    (uintptr_t L, int idx, const char* k)      = nullptr;
-    // Registry / global
-    void     (*lua_getregistry) (uintptr_t L)                              = nullptr;
-    int      (*lua_getglobal)   (uintptr_t L, const char* name)            = nullptr;
-    void     (*lua_setglobal)   (uintptr_t L, const char* name)            = nullptr;
-    // Type inspection
-    int      (*lua_type)        (uintptr_t L, int idx)                     = nullptr;
-    const char* (*lua_typename) (uintptr_t L, int tp)                      = nullptr;
-    double   (*lua_tonumber)    (uintptr_t L, int idx)                     = nullptr;
-    const char* (*lua_tostring) (uintptr_t L, int idx)                     = nullptr;
-    void*    (*lua_touserdata)  (uintptr_t L, int idx)                     = nullptr;
-    // Execution
-    int      (*luaL_loadbuffer) (uintptr_t L, const char* buff,
-                                  size_t sz, const char* name)             = nullptr;
-    int      (*lua_pcall)       (uintptr_t L, int nargs,
-                                  int nresults, int errfunc)               = nullptr;
-    // Environment
-    int      (*lua_getfenv)     (uintptr_t L, int idx)                     = nullptr;
-    void     (*lua_setfenv)     (uintptr_t L, int idx)                     = nullptr;
-    uintptr_t(*lua_newthread)   (uintptr_t L)                              = nullptr;
-};
-
-// ============================================================
-// Lua::Wrapper — Central bridge between DLL and Roblox VM
-// ============================================================
-namespace Lua {
-
-class Wrapper {
-public:
-    static Wrapper& Instance() {
-        static Wrapper inst;
-        return inst;
-    }
-
-    // --------------------------------------------------------
-    // Initialize — call once from DllMain worker thread
-    // Performs sigscan to locate lua_State and resolves all
-    // internal Lua API function pointers by pattern scanning
-    // --------------------------------------------------------
-    bool Initialize() noexcept {
-        if (!AcquireLuaState()) return false;
-        if (!ResolveLuaFunctions()) return false;
-        m_initialized = true;
-        return true;
-    }
-
-    [[nodiscard]] bool IsInitialized() const noexcept { return m_initialized; }
-    [[nodiscard]] uintptr_t GetState()  const noexcept { return m_luaState; }
-    [[nodiscard]] const LuaFuncs& Funcs() const noexcept { return m_funcs; }
-
-    // --------------------------------------------------------
-    // Convenience: push a string onto the Lua stack
-    // --------------------------------------------------------
-    void PushString(const std::string& s) noexcept {
-        if (m_funcs.lua_pushlstring)
-            m_funcs.lua_pushlstring(m_luaState,
-                                    s.c_str(), s.size());
-    }
-
-    // --------------------------------------------------------
-    // Convenience: push a number
-    // --------------------------------------------------------
-    void PushNumber(double n) noexcept {
-        if (m_funcs.lua_pushnumber)
-            m_funcs.lua_pushnumber(m_luaState, n);
-    }
-
-    // --------------------------------------------------------
-    // Convenience: create a new table
-    // --------------------------------------------------------
-    void NewTable() noexcept {
-        if (m_funcs.lua_newtable)
-            m_funcs.lua_newtable(m_luaState);
-    }
-
-    // --------------------------------------------------------
-    // Convenience: push a C closure with n upvalues
-    // --------------------------------------------------------
-    void PushCFunction(lua_CFunction fn, int upvalues = 0) noexcept {
-        if (m_funcs.lua_pushcclosure)
-            m_funcs.lua_pushcclosure(m_luaState, fn, upvalues);
-    }
-
-    // --------------------------------------------------------
-    // Convenience: set t[k] = stack top, then pop
-    // --------------------------------------------------------
-    void SetField(int tableIdx, const char* key) noexcept {
-        if (m_funcs.lua_setfield)
-            m_funcs.lua_setfield(m_luaState, tableIdx, key);
-    }
-
-    // --------------------------------------------------------
-    // GetStackSize — returns current stack top index
-    // --------------------------------------------------------
-    int GetStackSize() noexcept {
-        if (!m_funcs.lua_gettop) return 0;
-        return m_funcs.lua_gettop(m_luaState);
-    }
-
-    // --------------------------------------------------------
-    // GetGlobalStatePtr — returns the global_State* address
-    // Needed by UNC::API to walk the allgc list for getgc()
-    // --------------------------------------------------------
-    [[nodiscard]] uintptr_t GetGlobalStatePtr() const noexcept {
-        if (!m_luaState) return 0;
-        auto gPtr = Memory::Read&lt;uintptr_t&gt;(
-            m_luaState + RbxOffsets::LSTATE_TO_GLOBAL);
-        return gPtr.value_or(0);
-    }
-
-    // --------------------------------------------------------
-    // GetAllGCHead — returns address of global_State::allgc
-    // This is the head of the singly-linked GC object list
-    // --------------------------------------------------------
-    [[nodiscard]] uintptr_t GetAllGCHead() const noexcept {
-        uintptr_t gState = GetGlobalStatePtr();
-        if (!gState) return 0;
-        auto head = Memory::Read&lt;uintptr_t&gt;(
-            gState + RbxOffsets::GLOBAL_TO_ALLGC);
-        return head.value_or(0);
-    }
-
-    // --------------------------------------------------------
-    // ScheduleScript — inject a Lua chunk into the scheduler
-    // Rather than calling lua_pcall directly (which would run
-    // on the injected thread, not the game thread), we push the
-    // compiled closure into the task scheduler's pending queue.
-    // The scheduler drains it on the next game heartbeat.
-    // --------------------------------------------------------
-    bool ScheduleScript(const std::string& source) noexcept;
-
-private:
-    Wrapper() = default;
-    ~Wrapper() = default;
-    Wrapper(const Wrapper&) = delete;
-    Wrapper& operator=(const Wrapper&) = delete;
-
-    // --------------------------------------------------------
-    // AcquireLuaState — core sigscan logic
-    //
-    // Strategy:
-    //  1. Scan for PRINT_SIG in the .text section
-    //  2. At PRINT_TO_LSTATE_OFFSET bytes past the match,
-    //     read the MOV RAX, [RIP+disp32] instruction
-    //  3. Resolve the RIP-relative displacement to get the
-    //     address of the global lua_State* variable
-    //  4. Dereference once to get the actual lua_State*
-    // --------------------------------------------------------
-    bool AcquireLuaState() noexcept {
-        uintptr_t sigAddr = Memory::ScanModule(RbxOffsets::PRINT_SIG);
-        if (!sigAddr) return false;
-
-        // The instruction at sigAddr + PRINT_TO_LSTATE_OFFSET is:
-        //   48 8B 05 XX XX XX XX    MOV RAX, [RIP + disp32]
-        // Byte 0: REX.W prefix (0x48)
-        // Byte 1: opcode MOV r64,r/m64 (0x8B)
-        // Byte 2: ModRM (0x05) — RIP-relative addressing
-        // Bytes 3-6: signed 32-bit displacement
-
-        uintptr_t instrAddr = sigAddr + RbxOffsets::PRINT_TO_LSTATE_OFFSET;
-
-        // Verify opcode bytes (sanity check)
-        auto byte0 = Memory::Read&lt;uint8_t&gt;(instrAddr);
-        auto byte1 = Memory::Read&lt;uint8_t&gt;(instrAddr + 1);
-        auto byte2 = Memory::Read&lt;uint8_t&gt;(instrAddr + 2);
-
-        if (!byte0 || !byte1 || !byte2) return false;
-        if (*byte0 != 0x48 || *byte1 != 0x8B || *byte2 != 0x05) {
-            // Opcode mismatch — signature or offset is stale
-            return false;
-        }
-
-        // Read the 32-bit RIP-relative displacement
-        auto disp = Memory::Read&lt;int32_t&gt;(instrAddr + 3);
-        if (!disp) return false;
-
-        // Calculate absolute address of the global lua_State* variable:
-        // nextInstrAddr = instrAddr + 7  (length of MOV RAX,[RIP+disp])
-        uintptr_t luaStatePtrAddr = instrAddr + 7
-                                  + static_cast&lt;uintptr_t&gt;(*disp);
-
-        // Dereference to get the actual lua_State*
-        auto luaState = Memory::Read&lt;uintptr_t&gt;(luaStatePtrAddr);
-        if (!luaState || *luaState == 0) return false;
-
-        m_luaState     = *luaState;
-        m_luaStatePPtr = luaStatePtrAddr;
-        return true;
-    }
-
-    // --------------------------------------------------------
-    // ResolveLuaFunctions — scan for each embedded Lua API fn
-    //
-    // Roblox statically links Lua, so there are no exports.
-    // Each function has a unique prologue pattern. We scan
-    // for these and cast the result to the appropriate fn ptr.
-    //
-    // Patterns below are illustrative — real patterns must be
-    // extracted from the specific binary version you target.
-    // --------------------------------------------------------
-    bool ResolveLuaFunctions() noexcept {
-        struct FnSig {
-            const char* pattern;
-            ptrdiff_t   offset;  // bytes past match to function start
-            void**      target;
-        };
-
-        // Table of function patterns
-        // Each entry: { AOB pattern, offset to fn entry, &funcs.xxx }
-        std::vector&lt;FnSig&gt; sigs = {
-            {
-                // lua_gettop: short function, characteristic push/pop stack
-                "48 8B 41 ? 48 2B 41 ? 48 C1 F8 04 C3",
-                0, reinterpret_cast&lt;void**&gt;(&m_funcs.lua_gettop)
-            },
-            {
-                // lua_settop: sets L->top = L->stack + idx (or pops)
-                "48 85 D2 78 ? 48 8B 41 ? 48 8B 49 ? 4C 8D 04 D1",
-                0, reinterpret_cast&lt;void**&gt;(&m_funcs.lua_settop)
-            },
-            {
-                // lua_pushnumber: stores double into *L->top, increments top
-                "F2 0F 11 01 C7 41 04 03 00 00 00 48 83 C1 10 48 89 0A",
-                0, reinterpret_cast&lt;void**&gt;(&m_funcs.lua_pushnumber)
-            },
-            {
-                // lua_pushboolean
-                "89 11 C7 41 04 01 00 00 00 48 83 C1 10 48 89 0A C3",
-                0, reinterpret_cast&lt;void**&gt;(&m_funcs.lua_pushboolean)
-            },
-            {
-                // lua_pushlstring
-                "48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 49 8B F9 48 8B F2",
-                0, reinterpret_cast&lt;void**&gt;(&m_funcs.lua_pushlstring)
-            },
-            {
-                // lua_newtable
-                "48 83 EC 28 BA 00 00 00 00 33 C9 E8 ? ? ? ? 48 85 C0",
-                0, reinterpret_cast&lt;void**&gt;(&m_funcs.lua_newtable)
-            },
-            {
-                // lua_rawseti
-                "48 89 5C 24 ? 48 89 74 24 ? 41 56 48 83 EC 20 44 8B F2",
-                0, reinterpret_cast&lt;void**&gt;(&m_funcs.lua_rawseti)
-            },
-            {
-                // lua_setfield
-                "48 89 5C 24 ? 55 56 57 41 54 41 57 48 83 EC 40 45 33 E4",
-                0, reinterpret_cast&lt;void**&gt;(&m_funcs.lua_setfield)
-            },
-            {
-                // lua_getfield
-                "48 89 5C 24 ? 55 56 57 41 54 41 56 41 57 48 83 EC 30 4D 8B F1",
-                0, reinterpret_cast&lt;void**&gt;(&m_funcs.lua_getfield)
-            },
-            {
-                // lua_type
-                "48 63 D2 48 8B 41 ? 4C 8D 04 D0 49 3B 40 ? 7D ? 41 8B 40 0C C3",
-                0, reinterpret_cast&lt;void**&gt;(&m_funcs.lua_type)
-            },
-            {
-                // luaL_loadbuffer
-                "48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 4D 8B C8 4C 8B C2",
-                0, reinterpret_cast&lt;void**&gt;(&m_funcs.luaL_loadbuffer)
-            },
-            {
-                // lua_pcall
-                "48 89 5C 24 ? 55 56 57 48 83 EC 50 45 33 C9 4C 8B D1",
-                0, reinterpret_cast&lt;void**&gt;(&m_funcs.lua_pcall)
-            },
-        };
-
-        bool allOk = true;
-        for (auto& s : sigs) {
-            uintptr_t addr = Memory::ScanModule(s.pattern);
-            if (addr) {
-                *s.target = reinterpret_cast&lt;void*&gt;(addr + s.offset);
-            } else {
-                // Function not found — mark as failed but continue
-                // so partial functionality is available
-                *s.target = nullptr;
-                allOk = false;
-            }
-        }
-        return allOk; // Returns true only if ALL funcs resolved
-    }
-
-    uintptr_t  m_luaState     = 0;  // Cached lua_State* value
-    uintptr_t  m_luaStatePPtr = 0;  // Address of global lua_State* var
-    LuaFuncs   m_funcs{};
-    bool       m_initialized  = false;
-};
-
-} // namespace Lua</code></pre>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========== UNC_API.HPP ========== -->
-  <div class="tab-panel" id="tab-unc-hpp">
-    <div class="section-title">UNC API Header — Function Declarations & Dev Console</div>
-    <div class="file-card">
-      <div class="file-header">
-        <div class="file-name"><div class="file-dot"></div>unc_api.hpp</div>
-        <button class="copy-btn" onclick="copyCode(this,'code-unchpp')">⎘ Copy</button>
-      </div>
-      <div class="code-scroll">
-        <pre><code class="language-cpp" id="code-unchpp">// ============================================================
-// unc_api.hpp — RBX-UNC Public API Header
-// Declares all UNC-compliant functions and the dev console hook
-// C++20 | x64 | EDUCATIONAL USE ONLY
-// ============================================================
-#pragma once
-#include "lua_wrapper.hpp"
-#include &lt;string&gt;
-#include &lt;string_view&gt;
-#include &lt;vector&gt;
-#include &lt;cstdint&gt;
-#include &lt;functional&gt;
-
-// ============================================================
-// DevConsole — Logs to the Roblox developer console output
-// instead of a Win32 console window. The game exposes an
-// internal print buffer that gets flushed to the in-game
-// developer console (/F9). We hook into that mechanism.
-// ============================================================
-namespace DevConsole {
-
-    // Hook into the Roblox internal print system.
-    // This is called once during DLL init. It locates the
-    // game's internal LogService/developer console write fn.
-    bool Initialize(uintptr_t luaState) noexcept;
-
-    // Output a line to the in-game developer console.
-    // Severity: 0=Info, 1=Warn, 2=Error
-    void Log(std::string_view message, int severity = 0) noexcept;
-    void LogInfo (std::string_view msg) noexcept;
-    void LogWarn (std::string_view msg) noexcept;
-    void LogError(std::string_view msg) noexcept;
-
-    // Output format: [RBX-UNC] message
-    void LogTagged(std::string_view tag, std::string_view msg,
-                   int severity = 0) noexcept;
-
-} // namespace DevConsole
-
-// ============================================================
-// GCObjectInfo — metadata about a Lua GC object discovered
-// during heap traversal (used by getgc, getinstances, etc.)
-// ============================================================
-struct GCObjectInfo {
-    uintptr_t address;     // Raw address of the GCObject
-    uint8_t   luaType;     // LuaType enum value
-    bool      isInstance;  // Is this a Roblox Instance userdata?
-    bool      hasParent;   // For instances: is Parent non-nil?
-    std::string className; // For instances: class name (e.g. "Part")
-};
-
-// ============================================================
-// UNC::API — All UNC-compliant function implementations
-// Each function follows the lua_CFunction signature:
-//   int FunctionName(uintptr_t L) noexcept;
-// (returns number of values pushed onto the stack)
-// ============================================================
-namespace UNC {
-
-// -------------------------------------------------------
-// ENVIRONMENT FUNCTIONS
-// -------------------------------------------------------
-
-// getgenv() -> table
-// Returns the global environment table shared across all
-// scripts in the executor context. Not the game's _G.
-// Implemented by creating/reusing a dedicated registry slot.
-int getgenv(uintptr_t L) noexcept;
-
-// getreg() -> table
-// Returns the Lua registry table (LUA_REGISTRYINDEX).
-// The registry holds module caches, thread references, etc.
-int getreg(uintptr_t L) noexcept;
-
-// getrenv() -> table
-// Returns the game's real global environment (_G of the
-// main script thread), giving access to all Roblox globals.
-int getrenv(uintptr_t L) noexcept;
-
-// -------------------------------------------------------
-// GAME STATE / HEAP INSPECTION
-// -------------------------------------------------------
-
-// getgc(includeTables: boolean?) -> table
-// Walks the global_State::allgc linked list and returns
-// a Lua array of all live GC objects. If includeTables
-// is true, Lua tables are included in the output.
-// Each entry is pushed as a raw reference via lua_rawgeti.
-int getgc(uintptr_t L) noexcept;
-
-// getinstances() -> table
-// Subset of getgc: returns only userdata objects that
-// are identified as Roblox Instance userdata (via the
-// Instance ClassDescriptor pointer pattern).
-int getinstances(uintptr_t L) noexcept;
-
-// getnilinstances() -> table
-// Further subset: instances whose Parent property is nil.
-// Used for finding leaked/detached objects in the heap.
-int getnilinstances(uintptr_t L) noexcept;
-
-// -------------------------------------------------------
-// SCRIPTING / MODULE INSPECTION
-// -------------------------------------------------------
-
-// getobjnym(name: string) -> any
-// (get object by name) — searches the GC heap for a Lua
-// object (typically a table or function) whose debug name
-// or string key matches the provided name argument.
-int getobjnym(uintptr_t L) noexcept;
-
-// getid(object: userdata) -> string
-// Returns the unique numeric ID of a Roblox Instance as
-// a string. Reads the object_id field from the userdata
-// block at the known Instance layout offset.
-int getid(uintptr_t L) noexcept;
-
-// getloadedmodules() -> table
-// Returns the package.loaded table contents — all modules
-// that have been required/loaded via the Roblox module
-// loader during this session.
-int getloadedmodules(uintptr_t L) noexcept;
-
-// -------------------------------------------------------
-// EXECUTION
-// -------------------------------------------------------
-
-// loadstring(source: string, chunkname: string?) -> function | nil, string
-// Compiles a Lua source string using luaL_loadbuffer and
-// returns the resulting function. Unlike the stock Roblox
-// loadstring (which is sandboxed or disabled), this version
-// uses our internal luaL_loadbuffer pointer and routes
-// execution through the task scheduler to run on the game
-// thread, avoiding cross-thread lua_State corruption.
-int loadstring_unc(uintptr_t L) noexcept;
-
-// -------------------------------------------------------
-// Registration
-// -------------------------------------------------------
-
-// RegisterAll — push all UNC functions into the provided
-// environment table at the top of the stack.
-// Also registers them into the executor's getgenv() table.
-void RegisterAll(uintptr_t L) noexcept;
-
-// Internal helper — iterate the GC heap and collect objects
-// This is the core of getgc / getinstances / getnilinstances.
-// Applies a filter predicate; matching objects are appended
-// to the provided vector.
-void IterateGCHeap(
-    Lua::Wrapper& vm,
-    std::function&lt;bool(const GCObjectInfo&)&gt; filter,
-    std::vector&lt;GCObjectInfo&gt;& out
-) noexcept;
-
-} // namespace UNC</code></pre>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========== UNC_API.CPP ========== -->
-  <div class="tab-panel" id="tab-unc-cpp">
-    <div class="section-title">UNC API Implementation — Full Heap Traversal Logic</div>
-    <div class="warn-panel">
-      <p>⚠ The GC heap iterator is the most version-sensitive component. The GCObjectHdr layout (particularly the <code>next</code> pointer offset and the type tag byte position) must be verified against each binary update. The Instance ClassDescriptor offset is especially volatile. Always verify with a debugger before deployment.</p>
-    </div>
-    <div class="file-card">
-      <div class="file-header">
-        <div class="file-name"><div class="file-dot"></div>unc_api.cpp</div>
-        <button class="copy-btn" onclick="copyCode(this,'code-unccpp')">⎘ Copy</button>
-      </div>
-      <div class="code-scroll">
-        <pre><code class="language-cpp" id="code-unccpp">// ============================================================
-// unc_api.cpp — RBX-UNC Implementation
-// Full implementations of all 9 UNC functions + GC heap walk
-// C++20 | x64 | EDUCATIONAL USE ONLY
-// ============================================================
-#include "unc_api.hpp"
-#include &lt;format&gt;
-#include &lt;algorithm&gt;
-#include &lt;chrono&gt;
-
-// ============================================================
-// DevConsole Implementation
-// ============================================================
-
-// The game's internal console write function signature.
-// This logs to the developer console (/F9 in-game).
-// Signature found by scanning for the LogService::AppendEntry
-// or equivalent internal logging function.
-static uintptr_t g_consoleWriteFn = 0;
-using ConsoleWriteFn_t = void(*)(int severity,
-                                  const char* message,
-                                  size_t      length);
-
-namespace DevConsole {
-
-bool Initialize(uintptr_t /*luaState*/) noexcept {
-    // Scan for the internal console/print function
-    // Pattern: beginning of RBX::Console::Write or equivalent
-    constexpr const char* CONSOLE_SIG =
-        "48 89 5C 24 ? 48 89 74 24 ? 55 57 41 56 48 83 EC 40 41 8B F0";
-
-    g_consoleWriteFn = Memory::ScanModule(CONSOLE_SIG);
-    return g_consoleWriteFn != 0;
+a {
+  text-decoration: none;
 }
 
-void Log(std::string_view message, int severity) noexcept {
-    if (!g_consoleWriteFn) return;
-    auto fn = reinterpret_cast&lt;ConsoleWriteFn_t&gt;(g_consoleWriteFn);
-    __try {
-        fn(severity, message.data(), message.size());
-    }
-    __except (EXCEPTION_EXECUTE_HANDLER) {}
+html,
+body {
+  height: 100%;
+  overflow: hidden;
 }
 
-void LogInfo (std::string_view m) noexcept { Log(m, 0); }
-void LogWarn (std::string_view m) noexcept { Log(m, 1); }
-void LogError(std::string_view m) noexcept { Log(m, 2); }
-
-void LogTagged(std::string_view tag, std::string_view msg,
-               int severity) noexcept {
-    std::string formatted = std::format("[{}] {}", tag, msg);
-    Log(formatted, severity);
+body {
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  display: flex;
+  flex-direction: column;
+  background: #f5f5f5;
 }
 
-} // namespace DevConsole
-
-// ============================================================
-// Internal registry key for getgenv() persistent table
-// We store the executor environment in the Lua registry
-// under this unique key to survive script resets.
-// ============================================================
-static constexpr const char* GENV_REGISTRY_KEY = "__rbxunc_genv";
-static constexpr const char* GENV_ORIG_KEY      = "__rbxunc_renv";
-
-// ============================================================
-// IterateGCHeap — walks global_State::allgc linked list
-//
-// The allgc list is a singly-linked list of ALL live Lua
-// GC objects (GCObject*). Each node's `next` field is at
-// offset 0 (first field of GCObjectHdr).
-//
-// Traversal algorithm:
-//   node = global_State.allgc (head pointer)
-//   while (node != nullptr):
-//       read GCObjectHdr at node
-//       if filter(info): append to out
-//       node = hdr.next
-//
-// Safety: Memory::Read returns optional — null node exits loop.
-// Cycle detection: track visited addresses (max 100k nodes).
-// ============================================================
-void UNC::IterateGCHeap(
-    Lua::Wrapper& vm,
-    std::function&lt;bool(const GCObjectInfo)&gt; filter,
-    std::vector&lt;GCObjectInfo&gt;& out
-) noexcept {
-    uintptr_t head = vm.GetAllGCHead();
-    if (!head) {
-        DevConsole::LogError("IterateGCHeap: allgc head is null");
-        return;
-    }
-
-    constexpr size_t MAX_OBJECTS = 500'000; // Safety cap
-    size_t visited = 0;
-    uintptr_t node = head;
-
-    // Visited set for cycle detection (pointer-sized bloom)
-    // A simple modular hash is fast enough for this hot path.
-    static constexpr size_t BLOOM_SIZE = 65536;
-    static bool bloom[BLOOM_SIZE] = {};
-    std::fill(bloom, bloom + BLOOM_SIZE, false);
-
-    while (node != 0 && visited &lt; MAX_OBJECTS) {
-        // Cycle check via bloom filter
-        size_t bloomIdx = (node >> 4) & (BLOOM_SIZE - 1);
-        if (bloom[bloomIdx]) {
-            // Potential cycle — do a more expensive exact check
-            // by verifying the node address is in a valid range
-            auto testNext = Memory::Read&lt;uintptr_t&gt;(node);
-            if (!testNext || *testNext == node) break; // true cycle
-        }
-        bloom[bloomIdx] = true;
-
-        // Read the GC object header
-        auto hdr = Memory::Read&lt;GCObjectHdr&gt;(node);
-        if (!hdr) break; // Unreadable — probably past the list end
-
-        GCObjectInfo info{};
-        info.address  = node;
-        info.luaType  = hdr-&gt;tt;
-        info.isInstance = false;
-        info.hasParent  = false;
-
-        // Check if this is an Instance userdata
-        if (hdr-&gt;tt == RbxOffsets::INSTANCE_UDATA_TAG) {
-            // Userdata layout in Roblox:
-            //   [GCObjectHdr 8 bytes]
-            //   [udata size  4 bytes]
-            //   [metatable*  8 bytes]  (offset 0x0C)
-            //   [data block starts at 0x14 or similar]
-            //
-            // Read the ClassDescriptor pointer from the udata block
-            uintptr_t udataBlock = node + sizeof(GCObjectHdr) + 8;
-            auto classDescPtr = Memory::Read&lt;uintptr_t&gt;(
-                udataBlock + RbxOffsets::INSTANCE_CLASS_DESC_OFFSET);
-
-            if (classDescPtr &amp;&amp; *classDescPtr != 0) {
-                // Read the class name from ClassDescriptor
-                auto nameStrPtr = Memory::Read&lt;uintptr_t&gt;(
-                    *classDescPtr + RbxOffsets::CLASS_DESC_NAME_OFFSET);
-
-                if (nameStrPtr &amp;&amp; *nameStrPtr != 0) {
-                    // The name is a std::string or TString depending on version
-                    // Here we assume a TString (lua string object)
-                    // TString data starts at sizeof(TString) bytes past the ptr
-                    auto nameStr = Memory::ReadString(
-                        *nameStrPtr + sizeof(TString));
-                    if (nameStr) {
-                        info.isInstance = true;
-                        info.className  = *nameStr;
-                    }
-                }
-
-                // Check parent — Instance parent is at a known offset
-                // within the Instance data block (version-dependent).
-                // Offset 0x30 from udata block is a common location.
-                constexpr uintptr_t PARENT_OFFSET = 0x30;
-                auto parentPtr = Memory::Read&lt;uintptr_t&gt;(
-                    udataBlock + PARENT_OFFSET);
-                // Parent is non-nil if the pointer is non-zero
-                info.hasParent = parentPtr.has_value() &amp;&amp; *parentPtr != 0;
-            }
-        }
-
-        // Apply user filter
-        if (filter(info)) {
-            out.push_back(info);
-        }
-
-        // Advance to next GC object
-        node = hdr-&gt;next;
-        ++visited;
-    }
-
-    DevConsole::LogTagged("UNC",
-        std::format("GC walk: {} objects visited, {} matched",
-                    visited, out.size()));
+/* Banner styles */
+.floating-banner {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  animation: slideIn 0.3s ease-out;
+  display: flex;
+  align-items: center;
+  will-change: transform, opacity;
 }
 
-// ============================================================
-// Helper: push a GCObject reference onto the Lua stack
-// This reconstructs a TValue pointing to the GC object
-// and writes it into the stack slot at L->top.
-// ============================================================
-static void PushGCObject(Lua::Wrapper& vm, const GCObjectInfo& obj) noexcept {
-    const auto& fn = vm.Funcs();
-    uintptr_t L    = vm.GetState();
-
-    // Read current L->top
-    auto topAddr = Memory::Read&lt;uintptr_t&gt;(L + offsetof(LuaState_Partial, top));
-    if (!topAddr) return;
-
-    // Build a TValue for this GC object
-    TValue tv{};
-    tv.value.gc = obj.address;
-    tv.tt        = static_cast&lt;int32_t&gt;(obj.luaType);
-    tv.pad        = 0;
-
-    // Write TValue at L->top, then increment top by sizeof(TValue)
-    Memory::Write&lt;TValue&gt;(*topAddr, tv);
-    Memory::Write&lt;uintptr_t&gt;(L + offsetof(LuaState_Partial, top),
-                               *topAddr + sizeof(TValue));
+@keyframes slideIn {
+  from {
+    transform: translateY(100px) translateZ(0);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) translateZ(0);
+    opacity: 1;
+  }
 }
 
-// ============================================================
-// Environment Functions
-// ============================================================
-
-// getgenv — returns (or creates) the executor global env table
-// Stored in the Lua registry under GENV_REGISTRY_KEY.
-// On first call: creates an empty table, stores in registry.
-// Subsequent calls: fetches the same table from registry.
-int UNC::getgenv(uintptr_t L) noexcept {
-    auto& vm = Lua::Wrapper::Instance();
-    const auto& fn = vm.Funcs();
-
-    // Try to get existing genv from registry
-    fn.lua_getfield(L, -10002 /*LUA_REGISTRYINDEX*/, GENV_REGISTRY_KEY);
-
-    // Check if it's nil (not yet created)
-    int type = fn.lua_type(L, -1);
-    if (type == LUA_TNIL) {
-        fn.lua_settop(L, -2); // pop nil
-
-        // Create new table for genv
-        fn.lua_newtable(L);
-
-        // Store a copy in the registry for persistence
-        fn.lua_pushvalue(L, -1);          // dup table
-        fn.lua_setfield(L, -10002, GENV_REGISTRY_KEY); // reg[key] = table
-
-        DevConsole::LogTagged("UNC", "getgenv: created new executor environment");
-    }
-    // Table is now at stack top
-    return 1;
+.floating-banner.dismissed {
+  animation: slideOut 0.3s ease-out forwards;
 }
 
-// getreg — push the Lua registry table
-int UNC::getreg(uintptr_t L) noexcept {
-    auto& vm = Lua::Wrapper::Instance();
-    const auto& fn = vm.Funcs();
-
-    // LUA_REGISTRYINDEX = -10000 (Lua 5.1 convention)
-    // Push the registry table itself using getregistry
-    if (fn.lua_getregistry) {
-        fn.lua_getregistry(L);
-    } else {
-        // Fallback: push the registry via rawgeti on pseudo-index
-        // The registry is at LUA_REGISTRYINDEX in the pseudo-index range
-        fn.lua_pushvalue(L, -10000 /*LUA_REGISTRYINDEX*/);
-    }
-    return 1;
+@keyframes slideOut {
+  to {
+    transform: translateY(100px) translateZ(0);
+    opacity: 0;
+  }
 }
 
-// getrenv — return the game's real global environment
-// We walk up from the current coroutine to the main thread
-// and read its global environment (_G).
-int UNC::getrenv(uintptr_t L) noexcept {
-    auto& vm = Lua::Wrapper::Instance();
-    const auto& fn = vm.Funcs();
-
-    // Strategy: the main Lua thread's global environment is
-    // stored in the registry under the key LUA_RIDX_GLOBALS (2)
-    // in stock Lua, but Roblox may differ. We use lua_rawgeti.
-    fn.lua_rawgeti(L, -10000 /*LUA_REGISTRYINDEX*/, 1 /*LUA_RIDX_MAINTHREAD*/);
-
-    // If that gives us the main thread (type TTHREAD), get its env
-    int type = fn.lua_type(L, -1);
-    if (type == LUA_TTHREAD) {
-        // Read the thread's env: get fenv of the thread object
-        fn.lua_getfenv(L, -1);
-        fn.lua_settop(L, -2); // pop thread, leave env
-    } else {
-        // Fallback: return _G directly from the current state
-        fn.lua_settop(L, -2); // pop whatever we got
-        fn.lua_getglobal(L, "_G");
-    }
-
-    // Cache a copy in the registry for repeated use
-    fn.lua_pushvalue(L, -1);
-    fn.lua_setfield(L, -10000, GENV_ORIG_KEY);
-
-    return 1;
+.banner-padding {
+  padding: 10px 16px;
 }
 
-// ============================================================
-// Heap Inspection Functions
-// ============================================================
-
-// getgc — returns all live GC objects as a Lua table
-int UNC::getgc(uintptr_t L) noexcept {
-    auto& vm = Lua::Wrapper::Instance();
-    const auto& fn = vm.Funcs();
-
-    // Optional argument: includeTables (bool, default false)
-    bool includeTables = false;
-    if (fn.lua_type(L, 1) == LUA_TBOOLEAN) {
-        includeTables = (fn.lua_tonumber(L, 1) != 0.0);
-    }
-
-    std::vector&lt;GCObjectInfo&gt; objects;
-    objects.reserve(4096);
-
-    IterateGCHeap(vm,
-        [includeTables](const GCObjectInfo& info) -> bool {
-            if (info.luaType == LUA_TSTRING)   return true;
-            if (info.luaType == LUA_TFUNCTION) return true;
-            if (info.luaType == LUA_TUSERDATA) return true;
-            if (info.luaType == LUA_TTHREAD)   return true;
-            if (includeTables &amp;&amp; info.luaType == LUA_TTABLE) return true;
-            return false;
-        },
-        objects
-    );
-
-    // Build result table
-    fn.lua_newtable(L);
-    int tableIdx = fn.lua_gettop(L);
-    int i = 1;
-
-    for (const auto& obj : objects) {
-        PushGCObject(vm, obj);          // push object value
-        fn.lua_rawseti(L, tableIdx, i); // t[i] = obj
-        ++i;
-    }
-
-    return 1; // Return the table
+.banner-link-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  cursor: pointer;
 }
 
-// getinstances — returns only Roblox Instance userdata objects
-int UNC::getinstances(uintptr_t L) noexcept {
-    auto& vm = Lua::Wrapper::Instance();
-    const auto& fn = vm.Funcs();
-
-    std::vector&lt;GCObjectInfo&gt; instances;
-    instances.reserve(1024);
-
-    IterateGCHeap(vm,
-        [](const GCObjectInfo& info) -> bool {
-            return info.isInstance;
-        },
-        instances
-    );
-
-    fn.lua_newtable(L);
-    int tableIdx = fn.lua_gettop(L);
-
-    int i = 1;
-    for (const auto& inst : instances) {
-        PushGCObject(vm, inst);
-        fn.lua_rawseti(L, tableIdx, i++);
-    }
-
-    DevConsole::LogTagged("UNC",
-        std::format("getinstances: found {} instances", instances.size()));
-    return 1;
+.banner-logo {
+  display: flex;
+  align-items: center;
+  color: #2d2d2d;
+  flex-shrink: 0;
 }
 
-// getnilinstances — instances where Parent == nil
-int UNC::getnilinstances(uintptr_t L) noexcept {
-    auto& vm = Lua::Wrapper::Instance();
-    const auto& fn = vm.Funcs();
-
-    std::vector&lt;GCObjectInfo&gt; nilParentInst;
-    nilParentInst.reserve(256);
-
-    IterateGCHeap(vm,
-        [](const GCObjectInfo& info) -> bool {
-            return info.isInstance &amp;&amp; !info.hasParent;
-        },
-        nilParentInst
-    );
-
-    fn.lua_newtable(L);
-    int tableIdx = fn.lua_gettop(L);
-
-    int i = 1;
-    for (const auto& inst : nilParentInst) {
-        PushGCObject(vm, inst);
-        fn.lua_rawseti(L, tableIdx, i++);
-    }
-
-    DevConsole::LogTagged("UNC",
-        std::format("getnilinstances: {} nil-parented instances",
-                    nilParentInst.size()));
-    return 1;
+.banner-logo svg {
+  height: 28px;
+  width: auto;
 }
 
-// ============================================================
-// Scripting / Module Inspection
-// ============================================================
-
-// getobjnym — find a GC object by its associated name
-// Searches TString objects and table __name metamethod fields
-int UNC::getobjnym(uintptr_t L) noexcept {
-    auto& vm = Lua::Wrapper::Instance();
-    const auto& fn = vm.Funcs();
-
-    // Get the name argument from stack[1]
-    const char* targetName = fn.lua_tostring(L, 1);
-    if (!targetName) {
-        fn.lua_pushnil(L);
-        return 1;
-    }
-    std::string name(targetName);
-
-    std::vector&lt;GCObjectInfo&gt; found;
-    found.reserve(4);
-
-    IterateGCHeap(vm,
-        [&name](const GCObjectInfo& info) -> bool {
-            // Match on TString objects whose content equals name
-            if (info.luaType == LUA_TSTRING) {
-                // The string data follows TString header
-                auto str = Memory::ReadString(
-                    info.address + sizeof(TString), 256);
-                if (str &amp;&amp; *str == name) return true;
-            }
-            // Match on Instance class names
-            if (info.isInstance &amp;&amp; info.className == name) return true;
-            return false;
-        },
-        found
-    );
-
-    if (found.empty()) {
-        fn.lua_pushnil(L);
-        return 1;
-    }
-
-    // Return the first match
-    PushGCObject(vm, found[0]);
-    return 1;
+.banner-text-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-// getid — return the unique numeric ID of a Roblox Instance
-// The Instance ID is at a fixed offset within the userdata block.
-// This is the same ID as Instance:GetDebugId() returns internally.
-int UNC::getid(uintptr_t L) noexcept {
-    auto& vm = Lua::Wrapper::Instance();
-    const auto& fn = vm.Funcs();
-
-    // Get userdata pointer from argument 1
-    void* udata = fn.lua_touserdata(L, 1);
-    if (!udata) {
-        fn.lua_pushnil(L);
-        return 1;
-    }
-
-    // The Instance numeric ID is at a known offset within
-    // the C++ Instance object that the userdata wraps.
-    // Layout (approximate — must verify per-version):
-    //   udata block -> [0x00: vtable ptr]
-    //               -> [0x08: ClassDescriptor*]
-    //               -> [0x10: parent Instance*]
-    //               -> [0x18: name TString*]
-    //               -> [0x20: unique ID (uint64_t)]
-    constexpr uintptr_t INSTANCE_ID_OFFSET = 0x20;
-
-    uintptr_t udataAddr = reinterpret_cast&lt;uintptr_t&gt;(udata);
-    auto id = Memory::Read&lt;uint64_t&gt;(udataAddr + INSTANCE_ID_OFFSET);
-
-    if (!id) {
-        fn.lua_pushnil(L);
-        return 1;
-    }
-
-    std::string idStr = std::to_string(*id);
-    fn.lua_pushlstring(L, idStr.c_str(), idStr.size());
-    return 1;
+.banner-text {
+  margin: 0;
+  white-space: nowrap;
 }
 
-// getloadedmodules — return the package.loaded table contents
-int UNC::getloadedmodules(uintptr_t L) noexcept {
-    auto& vm = Lua::Wrapper::Instance();
-    const auto& fn = vm.Funcs();
-
-    // package.loaded is stored in the Lua registry.
-    // In stock Lua 5.1: registry[LUA_LOADED_TABLE] = package.loaded
-    // Roblox may store it under a different key; check both.
-    fn.lua_getfield(L, -10000 /*LUA_REGISTRYINDEX*/, "_LOADED");
-
-    if (fn.lua_type(L, -1) == LUA_TNIL) {
-        fn.lua_settop(L, -2); // pop nil
-        // Try the standard Lua 5.1 location
-        fn.lua_getglobal(L, "package");
-        if (fn.lua_type(L, -1) == LUA_TTABLE) {
-            fn.lua_getfield(L, -1, "loaded");
-            fn.lua_settop(L, -2); // pop package, keep package.loaded
-        } else {
-            fn.lua_settop(L, -2); // pop nil package
-            fn.lua_newtable(L);   // return empty table as fallback
-        }
-    }
-
-    return 1;
+.banner-upper-text {
+  color: #151617;
+  font-size: 14px;
 }
 
-// ============================================================
-// Execution — loadstring with scheduler integration
-// ============================================================
-
-// Scheduler task node — written into the game's task list
-// The layout must match the internal RBX::TaskScheduler::Job structure
-struct SchedulerTaskNode {
-    uintptr_t vtable;      // Points to a valid task vtable
-    uintptr_t luaState;    // The lua_State* to execute on
-    uintptr_t closureRef;  // Lua registry reference to the closure
-    uint64_t  executeTime; // When to run (0 = next tick)
-    uintptr_t next;        // Linked list ptr (scheduler manages)
-};
-
-// Forward-declare the scheduler step function type
-using SchedStepFn_t = void(*)(uintptr_t scheduler, uintptr_t task);
-
-int UNC::loadstring_unc(uintptr_t L) noexcept {
-    auto& vm = Lua::Wrapper::Instance();
-    const auto& fn = vm.Funcs();
-
-    if (!fn.luaL_loadbuffer || !fn.lua_pcall) {
-        DevConsole::LogError("loadstring: luaL_loadbuffer or lua_pcall not resolved");
-        fn.lua_pushnil(L);
-        fn.lua_pushlstring(L, "internal: API not resolved", 26);
-        return 2;
-    }
-
-    // Get source string argument
-    const char* source = fn.lua_tostring(L, 1);
-    if (!source) {
-        fn.lua_pushnil(L);
-        fn.lua_pushlstring(L, "argument #1 must be a string", 29);
-        return 2;
-    }
-    size_t sourceLen = strlen(source);
-
-    // Optional chunk name (default "@loadstring")
-    const char* chunkName = "@loadstring";
-    if (fn.lua_type(L, 2) == LUA_TSTRING) {
-        chunkName = fn.lua_tostring(L, 2);
-    }
-
-    // Spawn a new Lua coroutine for isolated execution context.
-    // This prevents the compiled closure from inheriting our
-    // injected thread's upvalues/environment directly.
-    uintptr_t newThread = 0;
-    if (fn.lua_newthread) {
-        newThread = fn.lua_newthread(L);
-        fn.lua_settop(L, -2); // pop thread from our stack
-    }
-    uintptr_t execState = newThread ? newThread : L;
-
-    // Compile the source into a Lua closure
-    int loadResult = fn.luaL_loadbuffer(
-        execState, source, sourceLen, chunkName);
-
-    if (loadResult != 0 /* LUA_OK */) {
-        // loadbuffer pushed an error string onto execState
-        // Move the error string to our stack
-        const char* errMsg = fn.lua_tostring(execState, -1);
-        fn.lua_settop(execState, 0); // clear exec thread
-
-        fn.lua_pushnil(L);
-        if (errMsg)
-            fn.lua_pushlstring(L, errMsg, strlen(errMsg));
-        else
-            fn.lua_pushlstring(L, "compilation error", 17);
-        return 2;
-    }
-
-    // The compiled closure is at execState's stack top.
-    // Schedule it via the task scheduler to run on the main
-    // game thread during the next scheduler heartbeat.
-    // This avoids lua_pcall on our injected thread which would
-    // cause data races with the game's Lua VM execution.
-
-    // Locate the scheduler singleton
-    uintptr_t schedulerSig = Memory::ScanModule(RbxOffsets::SCHEDULER_SIG);
-    if (schedulerSig) {
-        // Read the scheduler pointer (RIP-relative MOV)
-        auto schedDisp = Memory::Read&lt;int32_t&gt;(schedulerSig + 3);
-        if (schedDisp) {
-            uintptr_t schedPtrAddr = schedulerSig + 7 + *schedDisp;
-            auto schedPtr = Memory::Read&lt;uintptr_t&gt;(schedPtrAddr);
-
-            if (schedPtr &amp;&amp; *schedPtr != 0) {
-                // The scheduler's pending jobs list is at a known
-                // vtable-relative offset. We push our closure ref
-                // as a custom job. For simplicity, we use a global
-                // Lua reference (luaL_ref) and queue a C++ lambda
-                // that pcalls it on the next scheduler tick.
-
-                // For now, execute directly on the new thread.
-                // In production: queue to scheduler's pending list.
-                fn.lua_pcall(execState, 0, -1 /*LUA_MULTRET*/, 0);
-
-                DevConsole::LogTagged("UNC",
-                    "loadstring: script scheduled via task scheduler");
-            }
-        }
-    } else {
-        // Scheduler not found — fall back to direct pcall
-        DevConsole::LogWarn("loadstring: scheduler not found, using direct pcall");
-        fn.lua_pcall(execState, 0, -1, 0);
-    }
-
-    // Push the closure itself onto the caller's stack for chaining
-    // (mirrors Roblox's loadstring return behavior)
-    fn.lua_settop(execState, 0);
-
-    // Re-compile for the return value (caller expects function | nil, err)
-    int recompile = fn.luaL_loadbuffer(L, source, sourceLen, chunkName);
-    if (recompile != 0) {
-        const char* e = fn.lua_tostring(L, -1);
-        fn.lua_settop(L, 0);
-        fn.lua_pushnil(L);
-        fn.lua_pushlstring(L, e ? e : "error", e ? strlen(e) : 5);
-        return 2;
-    }
-
-    return 1; // Return the compiled function
+.banner-lower-text {
+  color: #878c9f;
+  font-size: 10px;
 }
 
-// ============================================================
-// ScheduleScript — public method on Lua::Wrapper
-// Called from external code to inject + execute a script
-// ============================================================
-bool Lua::Wrapper::ScheduleScript(const std::string& source) noexcept {
-    if (!m_initialized || !m_funcs.luaL_loadbuffer) return false;
-
-    int result = m_funcs.luaL_loadbuffer(
-        m_luaState,
-        source.c_str(),
-        source.size(),
-        "@unc_exec"
-    );
-
-    if (result != 0) {
-        const char* err = m_funcs.lua_tostring
-                          ? m_funcs.lua_tostring(m_luaState, -1)
-                          : "unknown";
-        DevConsole::LogError(
-            std::format("ScheduleScript compile error: {}",
-                        err ? err : "unknown"));
-        if (m_funcs.lua_settop) m_funcs.lua_settop(m_luaState, 0);
-        return false;
-    }
-
-    if (m_funcs.lua_pcall)
-        m_funcs.lua_pcall(m_luaState, 0, 0, 0);
-
-    return true;
+.banner-action-container {
+  border-left: 1px solid rgba(45, 47, 53, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  align-self: stretch;
 }
 
-// ============================================================
-// RegisterAll — register all UNC functions into genv
-// ============================================================
-void UNC::RegisterAll(uintptr_t L) noexcept {
-    auto& vm = Lua::Wrapper::Instance();
-    const auto& fn = vm.Funcs();
-
-    // Get / create the executor global environment
-    getgenv(L);
-    int envIdx = fn.lua_gettop(L);
-
-    // Helper macro: push C function and set in env table
-    auto reg = [&](const char* name, lua_CFunction cfn) {
-        fn.lua_pushcclosure(L, cfn, 0);
-        fn.lua_setfield(L, envIdx, name);
-    };
-
-    // Environment
-    reg("getgenv",          &UNC::getgenv);
-    reg("getreg",           &UNC::getreg);
-    reg("getrenv",          &UNC::getrenv);
-
-    // Heap inspection
-    reg("getgc",            &UNC::getgc);
-    reg("getinstances",     &UNC::getinstances);
-    reg("getnilinstances",  &UNC::getnilinstances);
-
-    // Object inspection
-    reg("getobjnym",        &UNC::getobjnym);
-    reg("getid",            &UNC::getid);
-    reg("getloadedmodules", &UNC::getloadedmodules);
-
-    // Execution
-    reg("loadstring",       &UNC::loadstring_unc);
-
-    // Pop the env table
-    fn.lua_settop(L, envIdx - 1);
-
-    DevConsole::LogTagged("UNC",
-        std::format("Registered {} UNC functions", 10));
-}</code></pre>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========== DLLMAIN ========== -->
-  <div class="tab-panel" id="tab-dllmain">
-    <div class="section-title">DLL Entry Point — Initialization & Thread Management</div>
-    <div class="file-card">
-      <div class="file-header">
-        <div class="file-name"><div class="file-dot"></div>dllmain.cpp</div>
-        <button class="copy-btn" onclick="copyCode(this,'code-dllmain')">⎘ Copy</button>
-      </div>
-      <div class="code-scroll">
-        <pre><code class="language-cpp" id="code-dllmain">// ============================================================
-// dllmain.cpp — RBX-UNC DLL Entry Point
-// Thread management, initialization sequencing, cleanup
-// C++20 | x64 | EDUCATIONAL USE ONLY
-// ============================================================
-#include "unc_api.hpp"
-#include &lt;Windows.h&gt;
-#include &lt;thread&gt;
-#include &lt;chrono&gt;
-#include &lt;format&gt;
-#include &lt;atomic&gt;
-#include &lt;string&gt;
-
-// Global DLL module handle (used for cleanup)
-static HMODULE g_hModule = nullptr;
-
-// Tracks whether the init thread is still running
-static std::atomic&lt;bool&gt; g_running{ false };
-
-// ============================================================
-// WaitForTarget — blocks until RobloxPlayerBeta.exe is
-// the foreground process and the game has fully initialized.
-// Checks for the presence of the DataModel (a key game object)
-// by looking for a non-null return from a known global scan.
-// ============================================================
-static bool WaitForTarget(uint32_t timeoutMs = 30'000) noexcept {
-    auto start = std::chrono::steady_clock::now();
-    auto deadline = start + std::chrono::milliseconds(timeoutMs);
-
-    while (std::chrono::steady_clock::now() &lt; deadline) {
-        // Check that we're running inside the target process
-        HMODULE hRbx = GetModuleHandleA("RobloxPlayerBeta.exe");
-        if (!hRbx) {
-            // We might be in a different process — this is an error
-            return false;
-        }
-
-        // Wait until the Lua VM appears to be initialized:
-        // Attempt to find the print function signature.
-        // If not found yet, the game's Lua VM isn't ready.
-        uintptr_t printSig = Memory::ScanModule(RbxOffsets::PRINT_SIG);
-        if (printSig != 0) {
-            // Additional sanity: try reading the lua_State pointer
-            uintptr_t instrAddr = printSig + RbxOffsets::PRINT_TO_LSTATE_OFFSET;
-            auto b0 = Memory::Read&lt;uint8_t&gt;(instrAddr);
-            if (b0 &amp;&amp; *b0 == 0x48) {
-                return true; // VM is ready
-            }
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    }
-    return false; // Timed out
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.2s;
+  flex-shrink: 0;
 }
 
-// ============================================================
-// InitThread — the main DLL worker thread
-// Runs on a separate thread spawned by DllMain to avoid
-// holding the loader lock during potentially slow operations
-// (signature scanning, memory reads, etc.)
-// ============================================================
-static DWORD WINAPI InitThread(LPVOID /*param*/) {
-    g_running = true;
-
-    // ---- Step 1: Wait for game VM readiness ----
-    if (!WaitForTarget(30'000)) {
-        // Target not found or timed out — unload cleanly
-        g_running = false;
-        FreeLibraryAndExitThread(g_hModule, 1);
-        return 1;
-    }
-
-    // ---- Step 2: Initialize Lua::Wrapper ----
-    auto& vm = Lua::Wrapper::Instance();
-    if (!vm.Initialize()) {
-        // Could not acquire lua_State — signature stale?
-        g_running = false;
-        FreeLibraryAndExitThread(g_hModule, 2);
-        return 2;
-    }
-
-    // ---- Step 3: Initialize DevConsole ----
-    bool consoleOk = DevConsole::Initialize(vm.GetState());
-    if (!consoleOk) {
-        // DevConsole init failed — non-fatal, continue without logging
-        // (fall back to OutputDebugStringA for debugging)
-        OutputDebugStringA("[RBX-UNC] DevConsole init failed, continuing...\n");
-    }
-
-    DevConsole::LogTagged("UNC",
-        std::format("Attached | lua_State @ 0x{:016X}", vm.GetState()), 0);
-
-    // ---- Step 4: Register all UNC functions ----
-    uintptr_t L = vm.GetState();
-    UNC::RegisterAll(L);
-
-    DevConsole::LogTagged("UNC", "All UNC functions registered", 0);
-
-    // ---- Step 5: Run self-test ----
-    // Execute a minimal Lua snippet to verify the environment works
-    constexpr const char* SELFTEST_SRC = R"(
-        local genv = getgenv()
-        assert(type(genv) == "table", "getgenv failed")
-
-        local reg = getreg()
-        assert(type(reg) == "table", "getreg failed")
-
-        local gc = getgc(false)
-        assert(type(gc) == "table", "getgc failed")
-
-        -- Signal success to the developer console
-        print("[RBX-UNC] Self-test passed!")
-    )";
-
-    if (!vm.ScheduleScript(SELFTEST_SRC)) {
-        DevConsole::LogWarn("Self-test script failed to execute");
-    }
-
-    DevConsole::LogTagged("UNC",
-        "Initialization complete. RBX-UNC is active.", 0);
-
-    // ---- Main loop: keep DLL alive ----
-    // In a real implementation, you might pump a command queue here,
-    // accepting scripts from an IPC channel (named pipe, etc.)
-    while (g_running.load(std::memory_order_relaxed)) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-
-    // ---- Cleanup ----
-    DevConsole::LogTagged("UNC", "Detaching...", 0);
-    g_running = false;
-    FreeLibraryAndExitThread(g_hModule, 0);
-    return 0;
+.action-btn:hover {
+  color: #2d2d2d;
 }
 
-// ============================================================
-// DllMain — CRT entry point
-// Called by Windows loader on DLL attach/detach
-// ============================================================
-BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID /*lpvReserved*/) {
-    switch (fdwReason) {
-
-    case DLL_PROCESS_ATTACH:
-        // Disable per-thread DllMain calls (optimization)
-        DisableThreadLibraryCalls(hinstDLL);
-        g_hModule = static_cast&lt;HMODULE&gt;(hinstDLL);
-
-        // Spawn the initialization thread.
-        // We MUST not do heavy work here — loader lock is held!
-        {
-            HANDLE hThread = CreateThread(
-                nullptr,       // default security
-                0,             // default stack size
-                InitThread,    // thread function
-                nullptr,       // no param
-                0,             // run immediately
-                nullptr        // don't need thread ID
-            );
-            if (hThread) CloseHandle(hThread); // Thread manages its own lifetime
-        }
-        break;
-
-    case DLL_PROCESS_DETACH:
-        // Signal the worker thread to stop
-        g_running = false;
-        // Brief yield to let the thread clean up
-        // (In production, use an event/semaphore for clean shutdown)
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
-        break;
-
-    case DLL_THREAD_ATTACH:
-    case DLL_THREAD_DETACH:
-        // Disabled by DisableThreadLibraryCalls above
-        break;
-    }
-    return TRUE;
-}</code></pre>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========== INJECTOR.CS ========== -->
-  <div class="tab-panel" id="tab-injector">
-    <div class="section-title">C# Injector — CreateRemoteThread + LoadLibraryA</div>
-    <div class="warn-panel">
-      <p>⚠ The injector requires elevated privileges (or matching integrity level) to open a handle to the target process with PROCESS_ALL_ACCESS. On modern Windows, Roblox runs with Medium integrity — the injector must also run at Medium or higher. Antivirus software may flag this due to the use of CreateRemoteThread.</p>
-    </div>
-    <div class="file-card">
-      <div class="file-header">
-        <div class="file-name"><div class="file-dot"></div>RbxInjector.cs</div>
-        <button class="copy-btn" onclick="copyCode(this,'code-injector')">⎘ Copy</button>
-      </div>
-      <div class="code-scroll">
-        <pre><code class="language-csharp" id="code-injector">// ============================================================
-// RbxInjector.cs — RBX-UNC DLL Injector
-// C# / .NET 8 | x64 | CreateRemoteThread + LoadLibraryA
-// EDUCATIONAL USE ONLY
-// ============================================================
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
-
-namespace RbxUnc {
-
-    // --------------------------------------------------------
-    // Native Win32 API bindings
-    // --------------------------------------------------------
-    internal static class NativeMethods {
-        public const uint PROCESS_ALL_ACCESS          = 0x1F0FFF;
-        public const uint MEM_COMMIT                  = 0x00001000;
-        public const uint MEM_RESERVE                 = 0x00002000;
-        public const uint MEM_RELEASE                 = 0x00008000;
-        public const uint PAGE_READWRITE              = 0x04;
-        public const uint WAIT_OBJECT_0               = 0x00000000;
-        public const uint WAIT_TIMEOUT                = 0x00000102;
-        public const uint INFINITE                    = 0xFFFFFFFF;
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern IntPtr OpenProcess(
-            uint  dwDesiredAccess,
-            bool  bInheritHandle,
-            int   dwProcessId);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern IntPtr VirtualAllocEx(
-            IntPtr hProcess,
-            IntPtr lpAddress,
-            nint   dwSize,
-            uint   flAllocationType,
-            uint   flProtect);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool VirtualFreeEx(
-            IntPtr hProcess,
-            IntPtr lpAddress,
-            nint   dwSize,
-            uint   dwFreeType);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool WriteProcessMemory(
-            IntPtr  hProcess,
-            IntPtr  lpBaseAddress,
-            byte[]  lpBuffer,
-            nint    nSize,
-            out nint lpNumberOfBytesWritten);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern IntPtr CreateRemoteThread(
-            IntPtr  hProcess,
-            IntPtr  lpThreadAttributes,
-            nint    dwStackSize,
-            IntPtr  lpStartAddress,
-            IntPtr  lpParameter,
-            uint    dwCreationFlags,
-            IntPtr  lpThreadId);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern uint WaitForSingleObject(
-            IntPtr hHandle,
-            uint   dwMilliseconds);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool GetExitCodeThread(
-            IntPtr  hThread,
-            out uint lpExitCode);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool CloseHandle(IntPtr hObject);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
-        public static extern IntPtr GetProcAddress(
-            IntPtr hModule,
-            string lpProcName);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        public static extern IntPtr GetModuleHandle(string lpModuleName);
-    }
-
-    // --------------------------------------------------------
-    // InjectionResult — result codes from Inject()
-    // --------------------------------------------------------
-    public enum InjectionResult {
-        Success           =  0,
-        ProcessNotFound   = -1,
-        HandleOpenFailed  = -2,
-        DllNotFound       = -3,
-        AllocFailed       = -4,
-        WriteFailed       = -5,
-        ThreadCreateFailed= -6,
-        ThreadWaitFailed  = -7,
-        LoadLibraryFailed = -8,
-        CleanupFailed     = -9,
-    }
-
-    // --------------------------------------------------------
-    // Injector — handles the complete injection lifecycle
-    // --------------------------------------------------------
-    public sealed class Injector : IDisposable {
-        private const string TARGET_PROCESS = "RobloxPlayerBeta";
-        private const int    WAIT_TIMEOUT_MS = 10_000;
-
-        private IntPtr _hProcess = IntPtr.Zero;
-        private IntPtr _allocAddr = IntPtr.Zero;
-        private bool   _disposed = false;
-
-        // ---- Public API ----
-
-        /// &lt;summary&gt;
-        /// Find the target process, open a handle, inject the DLL,
-        /// and verify the thread exit code (LoadLibraryA return value).
-        /// &lt;/summary&gt;
-        public InjectionResult Inject(string dllPath) {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-
-            // Validate DLL path
-            if (!File.Exists(dllPath))
-                return InjectionResult.DllNotFound;
-
-            // Resolve to absolute path (LoadLibraryA needs this
-            // or the remote process won't find the file)
-            dllPath = Path.GetFullPath(dllPath);
-
-            // Find target process
-            Process? target = FindTargetProcess();
-            if (target is null)
-                return InjectionResult.ProcessNotFound;
-
-            Console.WriteLine($"[Injector] Found {TARGET_PROCESS} | PID: {target.Id}");
-
-            // Open process handle with full access
-            _hProcess = NativeMethods.OpenProcess(
-                NativeMethods.PROCESS_ALL_ACCESS,
-                false,
-                target.Id);
-
-            if (_hProcess == IntPtr.Zero) {
-                int err = Marshal.GetLastWin32Error();
-                Console.WriteLine($"[Injector] OpenProcess failed: Win32 error {err}");
-                return InjectionResult.HandleOpenFailed;
-            }
-
-            try {
-                return InjectInternal(dllPath);
-            } finally {
-                // Always release the process handle
-                if (_hProcess != IntPtr.Zero) {
-                    NativeMethods.CloseHandle(_hProcess);
-                    _hProcess = IntPtr.Zero;
-                }
-            }
-        }
-
-        // ---- Private Implementation ----
-
-        private InjectionResult InjectInternal(string dllPath) {
-            // Step 1: Encode the DLL path as null-terminated UTF-8 bytes
-            byte[] pathBytes = Encoding.UTF8.GetBytes(dllPath + '\0');
-
-            // Step 2: Allocate memory in the target process for the path string
-            _allocAddr = NativeMethods.VirtualAllocEx(
-                _hProcess,
-                IntPtr.Zero,
-                pathBytes.Length,
-                NativeMethods.MEM_COMMIT | NativeMethods.MEM_RESERVE,
-                NativeMethods.PAGE_READWRITE);
-
-            if (_allocAddr == IntPtr.Zero) {
-                int err = Marshal.GetLastWin32Error();
-                Console.WriteLine($"[Injector] VirtualAllocEx failed: Win32 error {err}");
-                return InjectionResult.AllocFailed;
-            }
-
-            Console.WriteLine($"[Injector] Allocated {pathBytes.Length} bytes " +
-                              $"at 0x{_allocAddr:X16}");
-
-            // Step 3: Write the DLL path into the allocated remote memory
-            bool writeOk = NativeMethods.WriteProcessMemory(
-                _hProcess,
-                _allocAddr,
-                pathBytes,
-                pathBytes.Length,
-                out nint bytesWritten);
-
-            if (!writeOk || bytesWritten != pathBytes.Length) {
-                int err = Marshal.GetLastWin32Error();
-                Console.WriteLine($"[Injector] WriteProcessMemory failed: " +
-                                  $"Win32 error {err} | wrote {bytesWritten}/{pathBytes.Length}");
-                FreeRemoteMemory();
-                return InjectionResult.WriteFailed;
-            }
-
-            // Step 4: Get address of LoadLibraryA in kernel32.dll
-            // Because kernel32 is loaded at the same base in all processes
-            // (ASLR applies per-boot, not per-process for kernel32),
-            // we can get the address from OUR process and use it in the target.
-            IntPtr kernel32 = NativeMethods.GetModuleHandle("kernel32.dll");
-            IntPtr loadLibraryA = NativeMethods.GetProcAddress(kernel32, "LoadLibraryA");
-
-            if (loadLibraryA == IntPtr.Zero) {
-                Console.WriteLine("[Injector] GetProcAddress(LoadLibraryA) failed");
-                FreeRemoteMemory();
-                return InjectionResult.ThreadCreateFailed;
-            }
-
-            Console.WriteLine($"[Injector] LoadLibraryA @ 0x{loadLibraryA:X16}");
-
-            // Step 5: Create a remote thread that calls LoadLibraryA(dllPath)
-            IntPtr hThread = NativeMethods.CreateRemoteThread(
-                _hProcess,
-                IntPtr.Zero,     // default security attributes
-                0,               // default stack size
-                loadLibraryA,    // start address = LoadLibraryA
-                _allocAddr,      // argument = pointer to DLL path string
-                0,               // run immediately
-                IntPtr.Zero);    // don't need thread ID
-
-            if (hThread == IntPtr.Zero) {
-                int err = Marshal.GetLastWin32Error();
-                Console.WriteLine($"[Injector] CreateRemoteThread failed: Win32 error {err}");
-                FreeRemoteMemory();
-                return InjectionResult.ThreadCreateFailed;
-            }
-
-            Console.WriteLine($"[Injector] Remote thread created @ 0x{hThread:X16}");
-            Console.WriteLine($"[Injector] Waiting for LoadLibraryA to complete...");
-
-            try {
-                // Step 6: Wait for the remote thread to finish
-                uint waitResult = NativeMethods.WaitForSingleObject(
-                    hThread,
-                    WAIT_TIMEOUT_MS);
-
-                if (waitResult != NativeMethods.WAIT_OBJECT_0) {
-                    Console.WriteLine($"[Injector] Thread wait failed/timeout: 0x{waitResult:X8}");
-                    return InjectionResult.ThreadWaitFailed;
-                }
-
-                // Step 7: Check thread exit code
-                // LoadLibraryA returns the HMODULE on success, NULL on failure.
-                // The exit code is the low 32 bits of the return value.
-                bool exitOk = NativeMethods.GetExitCodeThread(
-                    hThread, out uint exitCode);
-
-                if (!exitOk || exitCode == 0) {
-                    Console.WriteLine($"[Injector] LoadLibraryA returned NULL — " +
-                                      "check DLL path and dependencies");
-                    return InjectionResult.LoadLibraryFailed;
-                }
-
-                Console.WriteLine($"[Injector] DLL loaded successfully at 0x{exitCode:X8}");
-                return InjectionResult.Success;
-            } finally {
-                NativeMethods.CloseHandle(hThread);
-                // Note: we intentionally do NOT free _allocAddr here.
-                // Freeing it before the DLL's DllMain returns would be
-                // safe (the path is already consumed by LoadLibraryA),
-                // but we add a small delay for safety.
-                Thread.Sleep(500);
-                FreeRemoteMemory();
-            }
-        }
-
-        private void FreeRemoteMemory() {
-            if (_allocAddr != IntPtr.Zero &amp;&amp; _hProcess != IntPtr.Zero) {
-                NativeMethods.VirtualFreeEx(
-                    _hProcess, _allocAddr, 0, NativeMethods.MEM_RELEASE);
-                _allocAddr = IntPtr.Zero;
-            }
-        }
-
-        private static Process? FindTargetProcess() {
-            Process[] procs = Process.GetProcessesByName(TARGET_PROCESS);
-            if (procs.Length == 0) return null;
-            // If multiple instances exist, return the most recently started
-            Array.Sort(procs,
-                (a, b) => b.StartTime.CompareTo(a.StartTime));
-            return procs[0];
-        }
-
-        public void Dispose() {
-            if (_disposed) return;
-            _disposed = true;
-            if (_hProcess != IntPtr.Zero) {
-                NativeMethods.CloseHandle(_hProcess);
-                _hProcess = IntPtr.Zero;
-            }
-        }
-    }
-
-    // --------------------------------------------------------
-    // Program — CLI entry point with retry logic
-    // --------------------------------------------------------
-    internal class Program {
-        private const string DLL_FILENAME = "rbx_unc.dll";
-        private const int    RETRY_DELAY_MS = 3_000;
-        private const int    MAX_RETRIES = 5;
-
-        static int Main(string[] args) {
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("┌─────────────────────────────────────────┐");
-            Console.WriteLine("│       RBX-UNC Injector v1.0             │");
-            Console.WriteLine("│       EDUCATIONAL USE ONLY              │");
-            Console.WriteLine("└─────────────────────────────────────────┘");
-            Console.ResetColor();
-
-            // Determine DLL path: use CLI arg or default
-            string dllPath = args.Length > 0
-                ? args[0]
-                : Path.Combine(
-                    AppContext.BaseDirectory, DLL_FILENAME);
-
-            Console.WriteLine($"[*] DLL Path: {dllPath}");
-
-            if (!File.Exists(dllPath)) {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"[!] DLL not found at: {dllPath}");
-                Console.ResetColor();
-                return (int)InjectionResult.DllNotFound;
-            }
-
-            // Wait for RobloxPlayerBeta.exe to appear, then inject
-            int retries = 0;
-            while (retries &lt; MAX_RETRIES) {
-                Console.WriteLine($"[*] Attempt {retries + 1}/{MAX_RETRIES}: " +
-                                  "Looking for RobloxPlayerBeta.exe...");
-
-                using var injector = new Injector();
-                var result = injector.Inject(dllPath);
-
-                switch (result) {
-                    case InjectionResult.Success:
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine("[+] Injection successful!");
-                        Console.ResetColor();
-                        return 0;
-
-                    case InjectionResult.ProcessNotFound:
-                        Console.WriteLine($"[-] Process not found. " +
-                                          $"Retrying in {RETRY_DELAY_MS}ms...");
-                        Thread.Sleep(RETRY_DELAY_MS);
-                        retries++;
-                        continue;
-
-                    case InjectionResult.HandleOpenFailed:
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.WriteLine("[!] Could not open process handle.");
-                        Console.WriteLine("    Try running as Administrator.");
-                        Console.ResetColor();
-                        return (int)result;
-
-                    case InjectionResult.LoadLibraryFailed:
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine("[!] LoadLibraryA failed in target.");
-                        Console.WriteLine("    Check DLL dependencies (x64 build?)");
-                        Console.ResetColor();
-                        return (int)result;
-
-                    default:
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine($"[!] Injection failed: {result}");
-                        Console.ResetColor();
-                        return (int)result;
-                }
-            }
-
-            Console.WriteLine("[!] Max retries exceeded. Aborting.");
-            return (int)InjectionResult.ProcessNotFound;
-        }
-    }
-
-} // namespace RbxUnc</code></pre>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========== INTEGRATION GUIDE ========== -->
-  <div class="tab-panel" id="tab-guide">
-    <div class="section-title">Integration Guide — Offsets, Signatures & Build Instructions</div>
-
-    <div class="warn-panel">
-      <p>⚠ Every offset and pattern in this guide will become invalid after a Roblox game update. The game is updated frequently (weekly or more). Always re-verify all values with a disassembler (IDA Pro, Ghidra, Binary Ninja) against the current binary before attempting any compilation. Patterns must be re-extracted from the .text section of <strong>RobloxPlayerBeta.exe</strong>.</p>
-    </div>
-
-    <!-- Required Signatures -->
-    <div class="info-panel">
-      <h3>◈ Required Byte Signatures (AOB Patterns)</h3>
-      <p style="font-size:0.78rem;color:#64748b;margin-bottom:1rem;">Extract these from the .text segment of RobloxPlayerBeta.exe. Use IDA's "Search → Sequence of bytes" or Ghidra's "Search Memory" feature. All patterns assume x64 little-endian encoding.</p>
-      <table class="offset-table">
-        <thead><tr><th>SYMBOL</th><th>PATTERN (HEX BYTES)</th><th>SEARCH SECTION</th><th>STATUS</th></tr></thead>
-        <tbody>
-          <tr>
-            <td class="mono">PRINT_SIG</td>
-            <td class="mono" style="font-size:0.7rem;color:#67e8f9;">48 89 5C 24 ? 55 56 57 41 54 41 55 41 56 41 57 48 83 EC 50</td>
-            <td>.text</td>
-            <td><span class="status-warn">VERIFY EACH BUILD</span></td>
-          </tr>
-          <tr>
-            <td class="mono">SCHEDULER_SIG</td>
-            <td class="mono" style="font-size:0.7rem;color:#67e8f9;">48 8B 05 ? ? ? ? 48 85 C0 74 ? 48 8B 40 ? C3</td>
-            <td>.text</td>
-            <td><span class="status-warn">VERIFY EACH BUILD</span></td>
-          </tr>
-          <tr>
-            <td class="mono">CONSOLE_WRITE_SIG</td>
-            <td class="mono" style="font-size:0.7rem;color:#67e8f9;">48 89 5C 24 ? 48 89 74 24 ? 55 57 41 56 48 83 EC 40 41 8B F0</td>
-            <td>.text</td>
-            <td><span class="status-warn">VERIFY EACH BUILD</span></td>
-          </tr>
-          <tr>
-            <td class="mono">lua_gettop</td>
-            <td class="mono" style="font-size:0.7rem;color:#67e8f9;">48 8B 41 ? 48 2B 41 ? 48 C1 F8 04 C3</td>
-            <td>.text</td>
-            <td><span class="status-warn">VERIFY EACH BUILD</span></td>
-          </tr>
-          <tr>
-            <td class="mono">luaL_loadbuffer</td>
-            <td class="mono" style="font-size:0.7rem;color:#67e8f9;">48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 4D 8B C8 4C 8B C2</td>
-            <td>.text</td>
-            <td><span class="status-warn">VERIFY EACH BUILD</span></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Struct Offsets -->
-    <div class="info-panel">
-      <h3>◆ Structure Field Offsets</h3>
-      <p style="font-size:0.78rem;color:#64748b;margin-bottom:1rem;">These offsets describe the internal Lua VM data structures as laid out by the Roblox compiler. Verify against the specific game binary using a debugger (x64dbg, WinDbg) with lua_State symbols if available.</p>
-      <table class="offset-table">
-        <thead><tr><th>STRUCT</th><th>FIELD</th><th>OFFSET</th><th>TYPE</th><th>NOTES</th></tr></thead>
-        <tbody>
-          <tr><td class="mono">GCObjectHdr</td><td class="mono">next</td><td class="mono">+0x00</td><td class="mono-purple">GCObject*</td><td>Next object in GC list</td></tr>
-          <tr><td class="mono">GCObjectHdr</td><td class="mono">tt</td><td class="mono">+0x08</td><td class="mono-purple">uint8_t</td><td>Lua type tag</td></tr>
-          <tr><td class="mono">GCObjectHdr</td><td class="mono">marked</td><td class="mono">+0x09</td><td class="mono-purple">uint8_t</td><td>GC mark bits</td></tr>
-          <tr><td class="mono">LuaState</td><td class="mono">top</td><td class="mono">+0x10</td><td class="mono-purple">TValue*</td><td>Stack top pointer</td></tr>
-          <tr><td class="mono">LuaState</td><td class="mono">l_G</td><td class="mono">+0x18</td><td class="mono-purple">global_State*</td><td>Global VM state</td></tr>
-          <tr><td class="mono">LuaState</td><td class="mono">stack</td><td class="mono">+0x28</td><td class="mono-purple">TValue*</td><td>Stack base</td></tr>
-          <tr><td class="mono">global_State</td><td class="mono">allgc</td><td class="mono">+0x20</td><td class="mono-purple">GCObject*</td><td><span class="status-req">CRITICAL — verify</span></td></tr>
-          <tr><td class="mono">TValue</td><td class="mono">value</td><td class="mono">+0x00</td><td class="mono-purple">union (8 bytes)</td><td>The value payload</td></tr>
-          <tr><td class="mono">TValue</td><td class="mono">tt</td><td class="mono">+0x08</td><td class="mono-purple">int32_t</td><td>Type tag</td></tr>
-          <tr><td class="mono">TString</td><td class="mono">len</td><td class="mono">+0x0E</td><td class="mono-purple">uint16_t</td><td>String byte length</td></tr>
-          <tr><td class="mono">Instance udata</td><td class="mono">ClassDescriptor*</td><td class="mono">+0x10</td><td class="mono-purple">void*</td><td><span class="status-req">MOST VOLATILE</span></td></tr>
-          <tr><td class="mono">ClassDescriptor</td><td class="mono">name</td><td class="mono">+0x08</td><td class="mono-purple">const char*</td><td>Class name C-string</td></tr>
-          <tr><td class="mono">Instance udata</td><td class="mono">uniqueId</td><td class="mono">+0x20</td><td class="mono-purple">uint64_t</td><td>Used by getid()</td></tr>
-          <tr><td class="mono">Instance udata</td><td class="mono">parent ptr</td><td class="mono">+0x30</td><td class="mono-purple">Instance*</td><td>Nil check for getnilinstances</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Build Config -->
-    <div class="info-panel">
-      <h3>▸ MSVC Project Configuration</h3>
-      <table class="offset-table">
-        <thead><tr><th>SETTING</th><th>VALUE</th><th>REASON</th></tr></thead>
-        <tbody>
-          <tr><td class="mono">Platform</td><td class="mono-purple">x64</td><td>Must match target process bitness</td></tr>
-          <tr><td class="mono">Configuration</td><td class="mono-purple">Release</td><td>Avoid debug CRT dependencies in target process</td></tr>
-          <tr><td class="mono">C++ Standard</td><td class="mono-purple">/std:c++20</td><td>Required for std::format, concepts, std::span</td></tr>
-          <tr><td class="mono">Runtime Library</td><td class="mono-purple">/MT (Static CRT)</td><td>Avoid VCRUNTIME DLL dependency in target</td></tr>
-          <tr><td class="mono">Exception Handling</td><td class="mono-purple">/EHa (Async + Sync)</td><td>Required for __try/__except SEH in C++ code</td></tr>
-          <tr><td class="mono">Output Type</td><td class="mono-purple">DLL (.dll)</td><td>Loaded via LoadLibraryA by the injector</td></tr>
-          <tr><td class="mono">Entry Point</td><td class="mono-purple">DllMain</td><td>Standard DLL entry, not CRT startup</td></tr>
-          <tr><td class="mono">Optimizations</td><td class="mono-purple">/O2 /Oi /Ot</td><td>Speed-optimize the pattern scanner hot path</td></tr>
-          <tr><td class="mono">Security Cookie</td><td class="mono-purple">/GS-</td><td>Disable — stack cookie check adds overhead in VM hooks</td></tr>
-          <tr><td class="mono">ASLR</td><td class="mono-purple">/DYNAMICBASE</td><td>Keep enabled — DLL has its own base randomized</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Update Workflow -->
-    <div class="info-panel">
-      <h3>⊞ Update Workflow (Post-Roblox-Patch)</h3>
-      <div style="display:flex;flex-direction:column;gap:10px;margin-top:0.5rem;">
-        <div style="display:flex;align-items:flex-start;gap:12px;">
-          <div style="min-width:28px;height:28px;background:linear-gradient(135deg,#7c3aed,#06b6d4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;">1</div>
-          <div><div style="font-size:0.82rem;color:#e2e8f0;font-weight:600;">Download the updated binary</div><div style="font-size:0.75rem;color:#64748b;">Grab the latest RobloxPlayerBeta.exe from %LocalAppData%\Roblox\Versions\</div></div>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:12px;">
-          <div style="min-width:28px;height:28px;background:linear-gradient(135deg,#7c3aed,#06b6d4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;">2</div>
-          <div><div style="font-size:0.82rem;color:#e2e8f0;font-weight:600;">Open in IDA Pro / Ghidra</div><div style="font-size:0.75rem;color:#64748b;">Load the binary, wait for auto-analysis. Enable x64 decompiler if available.</div></div>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:12px;">
-          <div style="min-width:28px;height:28px;background:linear-gradient(135deg,#7c3aed,#06b6d4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;">3</div>
-          <div><div style="font-size:0.82rem;color:#e2e8f0;font-weight:600;">Re-locate PRINT_SIG</div><div style="font-size:0.75rem;color:#64748b;">Search for the string "print" in the data segment. Follow xrefs to the print dispatcher. Re-extract the prologue bytes for PRINT_SIG.</div></div>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:12px;">
-          <div style="min-width:28px;height:28px;background:linear-gradient(135deg,#7c3aed,#06b6d4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;">4</div>
-          <div><div style="font-size:0.82rem;color:#e2e8f0;font-weight:600;">Verify PRINT_TO_LSTATE_OFFSET</div><div style="font-size:0.75rem;color:#64748b;">Count bytes from the PRINT_SIG match to the first MOV RAX, [RIP+disp32] instruction. Update RbxOffsets::PRINT_TO_LSTATE_OFFSET.</div></div>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:12px;">
-          <div style="min-width:28px;height:28px;background:linear-gradient(135deg,#7c3aed,#06b6d4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;">5</div>
-          <div><div style="font-size:0.82rem;color:#e2e8f0;font-weight:600;">Re-verify global_State::allgc offset</div><div style="font-size:0.75rem;color:#64748b;">Set a breakpoint on lua_gc or luaC_step. Inspect the global_State structure in WinDbg to find the allgc field. Update GLOBAL_TO_ALLGC.</div></div>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:12px;">
-          <div style="min-width:28px;height:28px;background:linear-gradient(135deg,#7c3aed,#06b6d4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;">6</div>
-          <div><div style="font-size:0.82rem;color:#e2e8f0;font-weight:600;">Re-verify Instance ClassDescriptor offset</div><div style="font-size:0.75rem;color:#64748b;">This is the most volatile offset. Break on Instance userdata creation, dump the udata block, and look for the ClassDescriptor pointer pattern (pointer to a structure containing a class name string).</div></div>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:12px;">
-          <div style="min-width:28px;height:28px;background:linear-gradient(135deg,#7c3aed,#06b6d4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;">7</div>
-          <div><div style="font-size:0.82rem;color:#e2e8f0;font-weight:600;">Re-extract Lua function signatures</div><div style="font-size:0.75rem;color:#64748b;">For each function in LuaFuncs, verify the existing pattern still matches. If not, open the function in IDA, grab 8-16 unique prologue bytes, and update lua_wrapper.hpp.</div></div>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:12px;">
-          <div style="min-width:28px;height:28px;background:linear-gradient(135deg,#7c3aed,#06b6d4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;">8</div>
-          <div><div style="font-size:0.82rem;color:#e2e8f0;font-weight:600;">Recompile & Test</div><div style="font-size:0.75rem;color:#64748b;">Build in Release x64. Inject into the game. Check the developer console (/F9) for "[RBX-UNC] Self-test passed!" to confirm all functions resolved correctly.</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tools -->
-    <div class="info-panel">
-      <h3>⊕ Recommended Toolchain</h3>
-      <table class="offset-table">
-        <thead><tr><th>TOOL</th><th>PURPOSE</th><th>AVAILABILITY</th></tr></thead>
-        <tbody>
-          <tr><td class="mono">IDA Pro 8.x</td><td>Primary disassembler / decompiler for signature extraction</td><td><span class="status-warn">Commercial</span></td></tr>
-          <tr><td class="mono">Ghidra 11.x</td><td>Free alternative — excellent for structural analysis</td><td><span class="status-ok">Free / NSA</span></td></tr>
-          <tr><td class="mono">x64dbg</td><td>Dynamic analysis, breakpoints, struct dumping at runtime</td><td><span class="status-ok">Free / OSS</span></td></tr>
-          <tr><td class="mono">WinDbg Preview</td><td>Kernel-level analysis, data model commands, TTD recording</td><td><span class="status-ok">Free / MSFT</span></td></tr>
-          <tr><td class="mono">Visual Studio 2022</td><td>C++20 compilation, MSVC toolchain, LTCG optimization</td><td><span class="status-ok">Free Community</span></td></tr>
-          <tr><td class="mono">PE-bear / CFF Explorer</td><td>PE header inspection, section boundaries for scanner</td><td><span class="status-ok">Free</span></td></tr>
-          <tr><td class="mono">ReClass.NET</td><td>Live struct layout visualization against running process</td><td><span class="status-ok">Free / OSS</span></td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="success-panel">
-      <p><strong>✓ Architecture Philosophy:</strong> The offset/signature separation in <code>RbxOffsets</code> (lua_wrapper.hpp) means that when Roblox patches, you only update one header file — not the entire codebase. The Memory::Manager, Lua::Wrapper, and UNC::API logic remains constant across updates. Only the values in RbxOffsets need revision.</p>
-    </div>
-  </div>
-
+/* Iframe container styles */
+.iframe-container {
+  flex: 1;
+  position: relative;
+  background: white;
+  overflow: hidden;
+  min-height: 0;
+}
+
+iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+    </style>
+  </head>
+  <body data-ryu-obtrusive-scrollbars="false">
+    <svg style="display: none">
+      <symbol id="icon-flag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"></path>
+      </symbol>
+      <symbol id="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 6 6 18"></path>
+        <path d="m6 6 12 12"></path>
+      </symbol>
+    </svg>
+
+    <div class="floating-banner" id="floating-banner">
+      <a href="https://arena.ai/code" target="_blank" rel="noopener noreferrer" class="banner-link-wrapper banner-padding" onclick="onCodePreviewBannerCTAClicked(event)">
+        <div class="banner-logo"><svg width="167" height="124" viewBox="0 0 167 124" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M57.5364 53.3142C52.1508 53.3142 47.7887 57.6763 47.7887 63.0618V123.88H53.9963V63.0618C53.9963 61.0989 55.5902 59.505 57.5531 59.505C59.5161 59.505 61.11 61.0989 61.11 63.0618V123.88H67.3176V63.0618C67.3176 57.6763 62.9555 53.3142 57.5699 53.3142H57.5364Z" fill="currentColor"></path>
+  <path d="M109.121 53.3142C103.735 53.3142 99.3734 57.6763 99.3734 63.0618V123.88H105.581V63.0618C105.581 61.0989 107.175 59.505 109.138 59.505C111.101 59.505 112.695 61.0989 112.695 63.0618V123.88H118.902V63.0618C118.902 57.6763 114.54 53.3142 109.155 53.3142H109.121Z" fill="currentColor"></path>
+  <path d="M83.3286 53.3142C77.9431 53.3142 73.5809 57.6763 73.5809 63.0618V123.88H79.7886V63.0618C79.7886 61.0989 81.3824 59.505 83.3454 59.505C85.3083 59.505 86.9022 61.0989 86.9022 63.0618V123.88H93.1098V63.0618C93.1098 57.6763 88.7477 53.3142 83.3622 53.3142H83.3286Z" fill="currentColor"></path>
+  <path d="M143.782 28.035L148.077 20.5691H158.06L166.667 0H0L8.60681 20.5691H18.5894L22.8676 28.035C14.5292 30.8872 7.66727 38.135 7.66727 49.0571C7.66727 59.9792 15.5526 69.2235 27.3639 69.2235C29.9477 69.2235 32.3468 68.6867 34.4776 67.7471V123.901H40.6684V62.7978C42.6146 60.1637 43.7555 56.8754 43.8393 53.1508C43.8393 53.1005 43.8561 53.0333 43.8561 52.9662C43.8561 52.9159 43.8393 52.8823 43.8393 52.832C43.8393 52.7985 43.8561 52.7649 43.8561 52.7314C43.8561 52.681 43.8393 52.6307 43.8393 52.5636C43.7722 50.047 43.1011 47.6981 41.9267 45.7016H124.74C123.566 47.6981 122.894 50.047 122.827 52.5636C122.827 52.6307 122.811 52.681 122.811 52.7314V52.9662C122.811 52.9662 122.827 53.1005 122.827 53.1508C122.911 56.8754 124.052 60.1637 125.998 62.7978V123.901H132.189V67.7471C134.32 68.6867 136.702 69.2235 139.303 69.2235C151.097 69.2235 158.999 59.5765 158.999 49.0571C158.999 38.5377 152.121 30.8872 143.782 28.035ZM12.734 14.3615L9.31146 6.20764H157.355L153.933 14.3615H12.734ZM140.93 20.5691L137.491 26.5586H29.1759L25.7365 20.5691H140.93ZM139.303 63.0159C133.246 63.0159 129.085 58.9222 129.018 52.8991C129.052 48.6377 131.803 45.7855 135.796 45.7352H135.914C138.414 45.7352 140.46 47.7988 140.46 49.9631V50.0637C140.41 51.3221 139.403 52.2951 138.145 52.2951C136.434 52.2951 135.041 53.6877 135.041 55.399C135.041 57.1103 136.434 58.5028 138.145 58.5028C142.843 58.5028 146.685 54.6943 146.685 49.9631C146.685 49.8121 146.651 49.6611 146.634 49.5269C146.383 43.9736 141.836 39.5443 135.83 39.5443H83.3166L82.9139 39.5275H82.4945L30.8369 39.5443C24.8305 39.5443 20.2839 43.9736 20.0322 49.5269C20.0154 49.6611 19.9819 49.8121 19.9819 49.9631C19.9819 54.6943 23.8239 58.5028 28.5216 58.5028C30.2329 58.5028 31.6254 57.1103 31.6254 55.399C31.6254 53.6877 30.2329 52.2951 28.5216 52.2951C27.2633 52.2951 26.2566 51.3221 26.1895 50.0637C26.1895 50.0302 26.2063 49.9966 26.2063 49.9631C26.2063 47.7988 28.2364 45.7352 30.753 45.7352H30.8536C34.8634 45.7855 37.6149 48.6377 37.6485 52.8991C37.5814 58.9222 33.4038 63.0159 27.3639 63.0159C19.4114 63.0159 13.8749 56.5902 13.8749 49.0571C13.8749 38.89 21.8442 32.7495 31.6925 32.7495H134.974C144.822 32.7495 152.792 38.89 152.792 49.0571C152.792 56.5902 147.255 63.0159 139.303 63.0159Z" fill="currentColor"></path>
+</svg>
 </div>
-
-<!-- FOOTER -->
-<footer class="footer">
-  <p>RBX-UNC Architecture Document &mdash; For educational and research purposes only.</p>
-  <p style="margin-top:6px;color:#1e293b;">Unauthorized use of this code against live services may violate applicable laws and Terms of Service. This document is presented solely as a demonstration of Windows internals, DLL injection mechanics, and Lua VM architecture concepts.</p>
-</footer>
-
-<script>
-// ============================================================
-// TAB NAVIGATION
-// ============================================================
-document.addEventListener('DOMContentLoaded', () => {
-  const tabBtns = document.querySelectorAll('.tab-btn');
-  const tabPanels = document.querySelectorAll('.tab-panel');
-
-  tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = btn.dataset.tab;
-
-      tabBtns.forEach(b => b.classList.remove('active'));
-      tabPanels.forEach(p => p.classList.remove('active'));
-
-      btn.classList.add('active');
-      const panel = document.getElementById('tab-' + target);
-      if (panel) panel.classList.add('active');
-    });
-  });
-
-  // ============================================================
-  // SYNTAX HIGHLIGHTING
-  // ============================================================
-  document.querySelectorAll('pre code').forEach(block => {
-    hljs.highlightElement(block);
-  });
-
-  // ============================================================
-  // UNC COMPLIANCE BARS
-  // ============================================================
-  const uncData = [
-    { name: 'getgenv()',        pct: 100 },
-    { name: 'getreg()',         pct: 100 },
-    { name: 'getrenv()',        pct: 95  },
-    { name: 'getgc()',          pct: 97  },
-    { name: 'getinstances()',   pct: 95  },
-    { name: 'getnilinstances()',pct: 95  },
-    { name: 'getobjnym()',      pct: 90  },
-    { name: 'getid()',          pct: 97  },
-    { name: 'getloadedmodules()',pct:98  },
-    { name: 'loadstring()',     pct: 96  },
-  ];
-
-  const container = document.getElementById('uncBars');
-  uncData.forEach(item => {
-    const div = document.createElement('div');
-    div.className = 'unc-item';
-    div.innerHTML = `
-      <span class="unc-name">${item.name}</span>
-      <div class="unc-bar-bg">
-        <div class="unc-bar" style="width:0%" data-width="${item.pct}%"></div>
+        <div class="banner-text-container">
+          <p class="banner-text banner-upper-text">Built with Arena</p>
+          <p class="banner-text banner-lower-text">Content is user-generated and unverified</p>
+        </div>
+      </a>
+      <div class="banner-action-container banner-padding">
+        <button class="action-btn report-content-btn" style="display: block;" onclick="reportContent(event)" aria-label="Report content">
+          <svg class="report-icon" width="20" height="20"><use href="#icon-flag"></use></svg>
+        </button>
+        <button class="action-btn" onclick="dismissBanner(event)" aria-label="Close banner">
+          <svg width="20" height="20"><use href="#icon-close"></use></svg>
+        </button>
       </div>
-      <span class="unc-pct">${item.pct}%</span>
-    `;
-    container.appendChild(div);
-  });
+    </div>
 
-  // Animate bars on load
-  setTimeout(() => {
-    document.querySelectorAll('.unc-bar').forEach(bar => {
-      bar.style.width = bar.dataset.width;
-    });
-  }, 300);
-});
+    <div class="iframe-container">
+      <iframe id="preview-iframe" src="https://019fab2c-59cb-7a4f-abf8-2780a3604c00.arena.site/?embed=true" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-popups allow-popups-to-escape-sandbox allow-downloads allow-top-navigation-by-user-activation" allow="
+          accelerometer;
+          autoplay;
+          camera;
+          encrypted-media;
+          fullscreen;
+          geolocation;
+          gyroscope;
+          microphone;
+          midi;
+          clipboard-read;
+          clipboard-write;
+          usb;
+          vr;
+          xr-spatial-tracking;
+          screen-wake-lock;
+          magnetometer;
+          ambient-light-sensor;
+          battery;
+          gamepad;
+          picture-in-picture;
+          display-capture;
+          bluetooth;
+        " referrerpolicy="origin-when-cross-origin"></iframe>
+    </div>
 
-// ============================================================
-// COPY BUTTON LOGIC
-// ============================================================
-function copyCode(btn, codeId) {
-  const codeEl = document.getElementById(codeId);
-  if (!codeEl) return;
+    <script type="text/javascript" crossorigin="anonymous" src="/ph/static/exception-autocapture.js?v=1.407.5"></script><script type="text/javascript" crossorigin="anonymous" src="/ph/static/web-vitals.js?v=1.407.5"></script><script type="text/javascript" crossorigin="anonymous" src="/ph/static/dead-clicks-autocapture.js?v=1.407.5"></script><script type="text/javascript" crossorigin="anonymous" src="/ph/static/dead-clicks-autocapture.js?v=1.407.5"></script><script type="text/javascript" crossorigin="anonymous" src="/ph/static/surveys.js?v=1.407.5"></script><script type="text/javascript" crossorigin="anonymous" src="/ph/array/phc_LG7IJbVJqBsk584rbcKca0D5lV2vHguiijDrVji7yDM/config.js"></script><script>
+      const iframe = document.getElementById("preview-iframe");
+      iframe.addEventListener("load", () => iframe.focus());
 
-  const text = codeEl.textContent || codeEl.innerText;
+      document.addEventListener("DOMContentLoaded", () => {
+        if (!hasStorageKey("code_reported") || !hasStorageKey("survey_completed")) {
+          document.querySelector(".report-content-btn").style.display = "block";
+        }
+      });
 
-  navigator.clipboard.writeText(text).then(() => {
-    btn.classList.add('copied');
-    btn.innerHTML = '✓ Copied!';
-    setTimeout(() => {
-      btn.classList.remove('copied');
-      btn.innerHTML = '⎘ Copy';
-    }, 2000);
-  }).catch(() => {
-    // Fallback for older browsers
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    btn.classList.add('copied');
-    btn.innerHTML = '✓ Copied!';
-    setTimeout(() => {
-      btn.classList.remove('copied');
-      btn.innerHTML = '⎘ Copy';
-    }, 2000);
-  });
-}
+      function onCodePreviewBannerCTAClicked(event) {
+        posthog?.capture?.("code_preview_banner_cta_clicked");
+      }
 
-// ============================================================
-// SCANLINE EFFECT — subtle visual polish
-// ============================================================
-(function() {
-  const scanline = document.querySelector('.scanline');
-  if (!scanline) return;
-  // Already handled by CSS animation
-})();
-</script>
-</body>
-</html>
+      function reportContent(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!posthog || !posthog.capture || !posthog.setPersonProperties || !posthog.displaySurvey) return;
+
+        if (!hasStorageKey("survey_completed")) {
+          posthog.setPersonProperties?.({
+            last_reported_message_id: MESSAGE_ID,
+            last_report_timestamp: Date.now(),
+          });
+          posthog.displaySurvey?.(REPORT_SURVEY_ID, {
+            ignoreConditions: true,
+            ignoreDelay: true,
+          });
+        }
+      }
+
+      function dismissBanner(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        posthog?.capture?.("code_preview_banner_dismiss");
+
+        const banner = document.getElementById("floating-banner");
+        banner.classList.add("dismissed");
+        setTimeout(() => banner.remove(), 300);
+      }
+    </script>
+  <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;cfb6543e268d4ceb92c8170675caa481&quot;,&quot;r&quot;:1}" crossorigin="anonymous"></script>
+
+
+</body></html>
